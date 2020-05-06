@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:line_awesome_icons/line_awesome_icons.dart';
 import 'package:volume_watcher/volume_watcher.dart';
 
 class VolumeButton extends StatefulWidget {
@@ -40,9 +40,12 @@ class _VolumeButtonState extends State<VolumeButton> {
           },
         ),
         IconButton(
-          icon: Icon(currentVol > 0.0 ? Icons.volume_up : Icons.volume_off,
+          icon: Icon(
+              currentVol > 0.0
+                  ? LineAwesomeIcons.volume_up
+                  : LineAwesomeIcons.volume_off,
               color: Colors.white),
-          iconSize: 34.0,
+          iconSize: 35.0,
           onPressed: () {
             double vol = currentVol > 0.0 ? 0.0 : 100;
             VolumeWatcher.setVolume(vol);
