@@ -19,7 +19,7 @@ class _VolumeButtonState extends State<VolumeButton> {
   }
 
   Future<void> initPlatformState() async {
-    int _currentVol = await VolumeWatcher.getCurrentVolume;
+    var _currentVol = await VolumeWatcher.getCurrentVolume;
 
     if (!mounted) return;
 
