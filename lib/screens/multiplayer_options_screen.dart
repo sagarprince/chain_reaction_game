@@ -40,6 +40,10 @@ class MultiPlayerOptionsScreen extends StatelessWidget {
                     child: AnimatedButton(
                       child:
                           Text('Play Online', style: AppTextStyles.buttonText),
+                      onPressed: () {
+                        Navigator.of(context)
+                            .pushNamed(AppRoutes.multi_player_online);
+                      },
                     ),
                   ),
                 ],
