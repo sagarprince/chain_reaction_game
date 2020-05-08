@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
+import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/blocs/events.dart';
@@ -23,7 +24,6 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
   List<Map<String, dynamic>> tempPlayers = [];
   int playersCount = 2;
   TextEditingController controller;
-  BuildContext _context;
 
   @override
   void initState() {
@@ -37,17 +37,10 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
 
   @override
   void didChangeDependencies() {
-    if (!isKeyboardOpened) {
+    if (!UiUtils.isKeyboardOpened(context)) {
       setPlayerNameEditing();
     }
     super.didChangeDependencies();
-  }
-
-  bool get isKeyboardOpened {
-    if (_context != null) {
-      return MediaQuery.of(context).viewInsets.bottom > 0 ? true : false;
-    }
-    return false;
   }
 
   Map<String, dynamic> _playerToMap(
@@ -134,7 +127,20 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
         children: <Widget>[
           !isEditing
               ? GestureDetector(
-                  child: Text('$name Color', style: AppTextStyles.mediumText),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        width: 110.0,
+                        child: Text('$name',
+                            style: AppTextStyles.mediumText,
+                            textAlign: TextAlign.right,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      SizedBox(width: 10.0),
+                      Text('Color', style: AppTextStyles.mediumText)
+                    ],
+                  ),
                   onTap: () {
                     controller.text = name;
                     setPlayerNameEditing(player);
@@ -147,6 +153,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                       Expanded(
                         child: TextField(
                           controller: controller,
+                          maxLength: 24,
                           decoration: InputDecoration(
                             enabledBorder: UnderlineInputBorder(
                               borderSide: BorderSide(
@@ -187,7 +194,6 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _context = context;
     double width = MediaQuery.of(context).size.width;
     double paddingTop = MediaQuery.of(context).padding.top;
     return Scaffold(
@@ -196,8 +202,9 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
           children: <Widget>[
             Container(
               padding: EdgeInsets.only(
-                  top:
-                      !isKeyboardOpened ? (paddingTop + 120) : paddingTop + 50),
+                  top: !UiUtils.isKeyboardOpened(context)
+                      ? (paddingTop + 120)
+                      : paddingTop + 50),
               child: Center(
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
@@ -216,7 +223,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                 ),
               ),
             ),
-            !isKeyboardOpened
+            !UiUtils.isKeyboardOpened(context)
                 ? Positioned(
                     top: (paddingTop + 22),
                     child: Container(
@@ -265,7 +272,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                     ),
                   )
                 : SizedBox(),
-            !isKeyboardOpened
+            !UiUtils.isKeyboardOpened(context)
                 ? AnimatedPositioned(
                     duration: Duration(milliseconds: 400),
                     bottom: isPlayersColorsSelected() ? 15 : -100,

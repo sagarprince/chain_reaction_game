@@ -6,4 +6,5 @@ ThemeData themeData = new ThemeData(
     scaffoldBackgroundColor: AppColors.black,
     primaryColor: AppColors.cardinal,
     fontFamily: AppFonts.secondary,
-    textTheme: TextTheme(body1: TextStyle(color: AppColors.white)));
+    errorColor: AppColors.razzmatazz,
+    textTheme: TextTheme(bodyText1: TextStyle(color: AppColors.white)));

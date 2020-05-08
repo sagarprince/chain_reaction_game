@@ -69,4 +69,11 @@ class UiUtils {
 
     showDialog(context: context, builder: (BuildContext context) => _dialog);
   }
+
+  static bool isKeyboardOpened(BuildContext context) {
+    if (context != null) {
+      return MediaQuery.of(context).viewInsets.bottom > 0 ? true : false;
+    }
+    return false;
+  }
 }

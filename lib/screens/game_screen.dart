@@ -5,7 +5,6 @@ import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/blocs/events.dart';
 import 'package:chain_reaction_game/game/cr_game.dart';
 import 'package:chain_reaction_game/game/engine/engine.dart';
-import 'package:chain_reaction_game/shared_instances.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/keys.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
@@ -124,7 +123,6 @@ class _GameViewState extends State<GameView> {
       Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
     });
     _game = CRGame(_engine);
-    SharedInstances.engine = _engine;
     super.initState();
   }
 

@@ -18,6 +18,13 @@ class Player extends Equatable {
   @override
   List<Object> get props => [name, color, isHuman];
 
+  Map<String, dynamic> toJson() =>
+      {'name': name, 'color': color, 'isHuman': isHuman};
+
+  factory Player.fromJson(Map<String, dynamic> json) {
+    return Player(json['name'], json['color'], json['isHuman']);
+  }
+
   @override
   bool get stringify => true;
 }

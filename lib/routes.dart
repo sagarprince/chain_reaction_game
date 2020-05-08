@@ -6,6 +6,8 @@ import 'package:chain_reaction_game/screens/versus_bot_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_options_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_offline_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_online_screen.dart';
+import 'package:chain_reaction_game/screens/multiplayer_online_creategame_screen.dart';
+import 'package:chain_reaction_game/screens/multiplayer_online_joingame_screen.dart';
 import 'package:chain_reaction_game/screens/game_screen.dart';
 import 'package:chain_reaction_game/screens/winner_screen.dart';
 import 'package:chain_reaction_game/screens/result_screen.dart';
@@ -63,6 +65,16 @@ class Routes {
       case AppRoutes.multi_player_online:
         return CupertinoPageRoute(
             settings: settings, builder: (_) => MultiPlayerOnlineScreen());
+        break;
+      case AppRoutes.multi_player_online_create_game:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => MultiPlayerOnlineCreateGameScreen());
+        break;
+      case AppRoutes.multi_player_online_join_game:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (_) => MultiPlayerOnlineJoinGameScreen());
         break;
       case AppRoutes.play_game:
         return ScaleRoute(page: GameScreen());
