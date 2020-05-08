@@ -9,4 +9,4 @@ class AppRoutes {
   static const result = '/result';
 }
 
-const List<String> PlayerColors = ['red', 'green', 'blue', 'yellow', 'orange'];
+const List<String> PlayerColors = ['red', 'green', 'blue', 'pink', 'orange'];

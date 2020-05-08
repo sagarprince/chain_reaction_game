@@ -29,14 +29,14 @@ class AppColors {
       case 'blue':
         return Colors.blue;
         break;
-      case 'yellow':
-        return Colors.yellow;
-        break;
       case 'green':
         return Colors.green;
         break;
+      case 'pink':
+        return Colors.pinkAccent;
+        break;
       case 'orange':
-        return Colors.orange;
+        return Colors.deepOrangeAccent;
         break;
       default:
         return Colors.red;
