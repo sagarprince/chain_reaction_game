@@ -7,6 +7,7 @@ class AppRoutes {
   static const multi_player_online_create_game =
       '/multi_player_online_creategame';
   static const multi_player_online_join_game = '/multi_player_online_joingame';
+  static const multi_player_online_wait = '/multi_player_online_wait';
   static const play_game = '/play_game';
   static const winner = '/winner';
   static const result = '/result';

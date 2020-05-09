@@ -52,17 +52,6 @@ class CREngine {
     _socketSubscribers();
   }
 
-  void _socketSubscribers() {
-    if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      _gameSocket.onSubscribePlayedMove((data) {
-        print(data);
-        Position pos = Position.fromJson(data['pos']);
-        String player = data['player'];
-        makeMove(pos, player);
-      });
-    }
-  }
-
   List<String> _buildPlayers() {
     List<String> players = [];
     _state.players.forEach((p) {
@@ -88,13 +77,29 @@ class CREngine {
     _totalMoves++;
   }
 
+  void _socketSubscribers() {
+    if (_state.gameMode == GameMode.MultiPlayerOnline) {
+      _gameSocket.onSubscribePlayedMove((data) {
+        print(data);
+        Position pos = Position.fromJson(data['pos']);
+        String player = data['player'];
+        makeMove(pos, player);
+      });
+    }
+  }
+
   void humanMove(Position pos, String player) async {
     if (_isHumanPlayer(player)) {
-      makeMove(pos, player);
-      if (_state.gameMode == GameMode.MultiPlayerOnline) {
+      if (_state.gameMode == GameMode.MultiPlayerOnline && _isYou(player)) {
+        makeMove(pos, player);
         _gameSocket.move(pos, player);
+        await HapticFeedback.vibrate(); // vibrate
       }
-      await HapticFeedback.vibrate(); // vibrate
+      if (_state.gameMode == GameMode.PlayVersusBot ||
+          _state.gameMode == GameMode.MultiPlayerOffline) {
+        makeMove(pos, player);
+        await HapticFeedback.vibrate(); // vibrate
+      }
     }
   }
 
@@ -199,6 +204,10 @@ class CREngine {
     int index =
         allPlayers.indexWhere((p) => p.color == color && p.isHuman == true);
     return index > -1;
+  }
+
+  bool _isYou(String color) {
+    return _gameSocket.myColor == color;
   }
 
   bool _isBotPlayer(String color) {

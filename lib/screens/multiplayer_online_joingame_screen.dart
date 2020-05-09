@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
+import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
@@ -16,10 +17,11 @@ class MultiPlayerOnlineJoinGameScreen extends StatefulWidget {
 
 class _MultiPlayerOnlineJoinGameState
     extends State<MultiPlayerOnlineJoinGameScreen> {
-  final joinGameFormKey = new GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _formKey = new GlobalKey<FormState>();
 
   GameSocket _gameSocket;
-  int roomId = 2;
+  int roomId = -1;
   String name = '';
   String color = '';
   int playersCount = 2;
@@ -45,9 +47,12 @@ class _MultiPlayerOnlineJoinGameState
       var decoded = data['decoded'];
       if (gamePlayStatus == GamePlayStatus.START) {
         _gameSocket.startGame(context);
-      } else {
+      } else if (gamePlayStatus == GamePlayStatus.WAIT) {
+        Navigator.of(context)
+            .pushReplacementNamed(AppRoutes.multi_player_online_wait);
+      } else if (gamePlayStatus == GamePlayStatus.ERROR) {
         if (decoded['status'] == 'error') {
-          FormState form = joinGameFormKey.currentState;
+          FormState form = _formKey.currentState;
           var code = decoded['code'];
           var message = decoded['message'];
           if (code == 'invalid_room_id' || code == 'room_full') {
@@ -59,19 +64,16 @@ class _MultiPlayerOnlineJoinGameState
           }
           form.validate();
         }
-      }
-    });
-
-    _gameSocket.onSubscribeJoined((status) {
-      print('STATUS :- $status');
-      if (status == GamePlayStatus.START) {
-        _gameSocket.startGame(context);
+      } else {
+        var message = decoded['message'];
+        _scaffoldKey.currentState
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     });
   }
 
   bool _validateForm() {
-    final FormState form = joinGameFormKey.currentState;
+    final FormState form = _formKey.currentState;
     FocusScope.of(context).requestFocus(new FocusNode());
     roomIdError = '';
     nameError = '';
@@ -83,7 +85,7 @@ class _MultiPlayerOnlineJoinGameState
   }
 
   void _handleSubmit() {
-    final FormState form = joinGameFormKey.currentState;
+    final FormState form = _formKey.currentState;
     if (_validateForm()) {
       form.save();
       _gameSocket.joinGame(roomId, Player(name, color, true));
@@ -94,6 +96,7 @@ class _MultiPlayerOnlineJoinGameState
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Scaffold(
+      key: _scaffoldKey,
       body: Background(
         child: Stack(
           children: <Widget>[
@@ -102,7 +105,7 @@ class _MultiPlayerOnlineJoinGameState
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Form(
-                    key: joinGameFormKey,
+                    key: _formKey,
                     child: Column(
                       children: <Widget>[
                         SizedBox(
@@ -113,12 +116,11 @@ class _MultiPlayerOnlineJoinGameState
                           children: <Widget>[
                             Text('Enter Room Code',
                                 style: AppTextStyles.regularText),
-                            SizedBox(height: 10.0),
                             Container(
                               padding: EdgeInsets.only(left: 30.0, right: 30.0),
                               child: TextFormField(
                                 focusNode: _roomIdFocusNode,
-                                maxLength: 24,
+                                maxLength: 5,
                                 decoration: InputDecoration(
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
@@ -160,7 +162,6 @@ class _MultiPlayerOnlineJoinGameState
                           children: <Widget>[
                             Text('Enter Your Name',
                                 style: AppTextStyles.regularText),
-                            SizedBox(height: 10.0),
                             Container(
                               padding: EdgeInsets.only(left: 30.0, right: 30.0),
                               child: TextFormField(
@@ -230,7 +231,7 @@ class _MultiPlayerOnlineJoinGameState
                             );
                           },
                         ),
-                        SizedBox(height: 20.0),
+                        SizedBox(height: 30.0),
                       ],
                     ),
                   ),
@@ -251,11 +252,11 @@ class _MultiPlayerOnlineJoinGameState
                           Container(
                             margin: EdgeInsets.only(top: 30.0),
                             width: 180,
-                            height: 45.0,
+                            height: 38.0,
                             child: AnimatedButton(
                                 child: Text('JOIN',
                                     style: AppTextStyles.buttonText
-                                        .copyWith(fontSize: 18.0)),
+                                        .copyWith(fontSize: 16.0)),
                                 onPressed: () {
                                   _handleSubmit();
                                 }),
@@ -275,7 +276,9 @@ class _MultiPlayerOnlineJoinGameState
   @override
   void dispose() {
     _gameSocket.onUnsubscribeRespond();
-    _gameSocket.onUnsubscribeJoined();
+    if (roomId == -1) {
+      _gameSocket.disconnect();
+    }
     super.dispose();
   }
 }

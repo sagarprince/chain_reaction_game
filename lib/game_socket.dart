@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:flutter_socket_io/flutter_socket_io.dart';
@@ -12,13 +13,17 @@ import 'package:chain_reaction_game/blocs/bloc.dart';
 
 const String URI = "http://192.168.0.103:4545";
 
-enum GamePlayStatus { START, WAIT, ERROR }
+enum GamePlayStatus { START, WAIT, ERROR, EXCEPTION }
 
 class GameSocket {
   SocketIO _socketIO;
+  bool isCreatedByMe = false;
   int roomId = -1;
   int playersCount = 2;
   List<dynamic> players = [];
+  String myName = '';
+  String myColor = '';
+  bool isGameStarted = false;
 
   static final GameSocket _singleton = GameSocket._internal();
 
@@ -52,20 +57,26 @@ class GameSocket {
 
   void createGame(int playersCount, Player player) {
     var payload = {'playersCount': playersCount, 'player': player};
+    myName = player.name;
+    myColor = player.color;
+    isCreatedByMe = true;
     _socketIO.sendMessage('create_game', jsonEncode(payload));
   }
 
   void joinGame(int roomId, Player player) {
     var payload = {'roomId': roomId, 'player': player};
+    myName = player.name;
+    myColor = player.color;
     _socketIO.sendMessage('join_game', jsonEncode(payload));
   }
 
+  void removeGame() {
+    var payload = {'roomId': roomId};
+    _socketIO.sendMessage('remove_game', jsonEncode(payload));
+  }
+
   bool isReadyToStartGame(decoded) {
-    print('IS READY TO START GAME..');
-    print(decoded);
     var players = decoded['players'];
-    print('Players Count :- $playersCount');
-    print('Total Players Joined :- ${players.length}');
     if (playersCount == players.length) {
       return true;
     }
@@ -73,42 +84,39 @@ class GameSocket {
   }
 
   void startGame(BuildContext context) {
-    try {
-      print('START GAME');
-      print(players);
-      BlocProvider.of<CRBloc>(context).add(StartGameEvent(
-          gameMode: GameMode.MultiPlayerOnline,
-          players: players.map((p) => Player.fromJson(p)).toList()));
-      Navigator.of(context).pushReplacementNamed(AppRoutes.play_game);
-    } catch (e) {
-      print('ERROR $e');
-    }
+    print('START GAME');
+    print(players);
+    BlocProvider.of<CRBloc>(context).add(StartGameEvent(
+        gameMode: GameMode.MultiPlayerOnline,
+        players: players.map((p) => Player.fromJson(p)).toList()));
+    Navigator.of(context).pushReplacementNamed(AppRoutes.play_game);
   }
 
   void onSubscribeRespond(Function callback) {
     _socketIO.subscribe('respond', (data) {
-      var decoded = jsonDecode(data);
-      print('RESPOND $decoded');
       Map<String, dynamic> response = {'gamePlayStatus': '', 'decoded': null};
-      if (decoded['status'] == 'created') {
-        roomId = decoded['roomId'];
-        playersCount = decoded['playersCount'];
-        response['gamePlayStatus'] = GamePlayStatus.WAIT;
-        response['decoded'] = decoded;
-      } else if (decoded['status'] == 'joined') {
+      var decoded = jsonDecode(data);
+      var status = decoded['status'];
+
+      if (status == 'created' || status == 'joined') {
         roomId = decoded['roomId'];
         playersCount = decoded['playersCount'];
         players = decoded['players'];
-        if (isReadyToStartGame(decoded)) {
-          response['gamePlayStatus'] = GamePlayStatus.START;
-        } else {
-          response['gamePlayStatus'] = GamePlayStatus.WAIT;
-        }
-      } else {
-        response['gamePlayStatus'] = GamePlayStatus.ERROR;
-        response['decoded'] = decoded;
+        response['gamePlayStatus'] = GamePlayStatus.WAIT;
       }
-      print(response);
+
+      if (status == 'joined') {
+        if (isReadyToStartGame(decoded)) {
+          isGameStarted = true;
+          response['gamePlayStatus'] = GamePlayStatus.START;
+        }
+      } else if (status == 'error') {
+        response['gamePlayStatus'] = GamePlayStatus.ERROR;
+      } else if (status == 'exception') {
+        response['gamePlayStatus'] = GamePlayStatus.EXCEPTION;
+      }
+
+      response['decoded'] = decoded;
       callback(response);
     });
   }
@@ -123,6 +131,7 @@ class GameSocket {
       var decoded = jsonDecode(data);
       players = decoded['players'];
       if (this.isReadyToStartGame(decoded)) {
+        isGameStarted = true;
         callback(GamePlayStatus.START);
       } else {
         callback(GamePlayStatus.WAIT);
@@ -152,6 +161,13 @@ class GameSocket {
 
   void disconnect() {
     if (_socketIO != null) {
+      isCreatedByMe = false;
+      roomId = -1;
+      playersCount = 2;
+      players = [];
+      myName = '';
+      myColor = '';
+      isGameStarted = false;
       SocketIOManager().destroyAllSocket();
     }
   }

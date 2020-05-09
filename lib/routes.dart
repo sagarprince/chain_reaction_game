@@ -8,6 +8,7 @@ import 'package:chain_reaction_game/screens/multiplayer_offline_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_online_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_online_creategame_screen.dart';
 import 'package:chain_reaction_game/screens/multiplayer_online_joingame_screen.dart';
+import 'package:chain_reaction_game/screens/multiplayer_online_wait_screen.dart';
 import 'package:chain_reaction_game/screens/game_screen.dart';
 import 'package:chain_reaction_game/screens/winner_screen.dart';
 import 'package:chain_reaction_game/screens/result_screen.dart';
@@ -75,6 +76,10 @@ class Routes {
         return CupertinoPageRoute(
             settings: settings,
             builder: (_) => MultiPlayerOnlineJoinGameScreen());
+        break;
+      case AppRoutes.multi_player_online_wait:
+        return CupertinoPageRoute(
+            settings: settings, builder: (_) => MultiPlayerOnlineWaitScreen());
         break;
       case AppRoutes.play_game:
         return ScaleRoute(page: GameScreen());

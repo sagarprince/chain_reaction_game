@@ -7,8 +7,7 @@ class GameRulesDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          EdgeInsets.only(left: 15.0, right: 15.0, top: 10.0, bottom: 15.0),
+      padding: EdgeInsets.only(left: 15.0, right: 15.0, top: 10.0, bottom: 0.0),
       height: 400.0,
       child: Stack(
         children: <Widget>[
@@ -52,6 +51,7 @@ class GameRulesDialog extends StatelessWidget {
                         Text(
                             '6) The winner is the one who eliminates every other players orbs.',
                             style: AppTextStyles.rulesText),
+                        SizedBox(height: 15.0),
                       ],
                     ),
                   ),
@@ -60,7 +60,7 @@ class GameRulesDialog extends StatelessWidget {
             ),
           ),
           Align(
-            alignment: Alignment(1.24, -1.14),
+            alignment: Alignment(1.20, -1.14),
             child: InkWell(
               onTap: () {
                 Navigator.pop(context);

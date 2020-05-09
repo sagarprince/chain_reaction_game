@@ -20,8 +20,8 @@ class GameScreen extends StatelessWidget {
       onWillPop: () {
         return UiUtils.confirmDialog(
             context: context,
-            title: 'Exit Game',
-            message: 'Do you want to exit game?');
+            title: 'Leave Game',
+            message: 'Do you want to leave game?');
       },
       child: Scaffold(
         body: BlocBuilder<CRBloc, CRState>(

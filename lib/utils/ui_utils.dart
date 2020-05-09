@@ -9,52 +9,59 @@ class UiUtils {
       Icon icon = const Icon(Icons.info, size: 30.0, color: AppColors.white),
       Color iconBackgroundColor = AppColors.cardinal,
       String title = '',
-      String message = ''}) async {
+      String message = '',
+      Function callback}) async {
     return showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
+            contentPadding:
+                EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
             content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Container(
-              width: 64.0,
-              height: 64.0,
-              child: Image.asset('assets/images/stop.png'),
-            ),
-            SizedBox(height: 20.0),
-            Text(title, style: AppTextStyles.confirmationTitle),
-            SizedBox(height: 10.0),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.confirmationMessage),
-            SizedBox(height: 15.0),
-            Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                RaisedButton(
-                  color: AppColors.whiteLight,
-                  child: Text('No', style: AppTextStyles.confirmationButton),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
+                Container(
+                  width: 64.0,
+                  height: 64.0,
+                  child: Image.asset('assets/images/stop.png'),
                 ),
-                SizedBox(width: 10.0),
-                new RaisedButton(
-                  color: AppColors.cardinal,
-                  child: Text('Yes',
-                      style: AppTextStyles.confirmationButton
-                          .copyWith(color: AppColors.white)),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                ),
+                SizedBox(height: 20.0),
+                Text(title, style: AppTextStyles.confirmationTitle),
+                SizedBox(height: 10.0),
+                Text(message,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.confirmationMessage),
+                SizedBox(height: 15.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    RaisedButton(
+                      color: AppColors.whiteLight,
+                      child:
+                          Text('No', style: AppTextStyles.confirmationButton),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    SizedBox(width: 10.0),
+                    new RaisedButton(
+                      color: AppColors.cardinal,
+                      child: Text('Yes',
+                          style: AppTextStyles.confirmationButton
+                              .copyWith(color: AppColors.white)),
+                      onPressed: () {
+                        if (callback != null) {
+                          callback();
+                        }
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                )
               ],
-            )
-          ],
-        ));
+            ));
       },
     );
   }

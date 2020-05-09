@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
-import 'package:chain_reaction_game/widgets/color_button.dart';
+import 'package:chain_reaction_game/widgets/orb_button.dart';
 
 class ColorChooser extends StatefulWidget {
   final String activeColor;
@@ -42,7 +42,7 @@ class _ColorChooserState extends State<ColorChooser> {
               widget.disableColors.indexOf(color) > -1) {
             disabled = true;
           }
-          return ColorButton(
+          return OrbButton(
               color: color,
               width: (MediaQuery.of(context).size.width / 5) - 8,
               height: 60.0,

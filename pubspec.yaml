@@ -31,7 +31,9 @@ dependencies:
   line_awesome_icons: ^1.0.4+2
   assets_audio_player: 1.4.0
   volume_watcher: ^1.1.0
-  flutter_socket_io: ^0.6.0
+  flutter_socket_io:
+    git: https://github.com/sagarprince/flutter_socket_io.git
+  share:
 
 dev_dependencies:
   flutter_test:

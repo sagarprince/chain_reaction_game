@@ -1,39 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 
-class ColorButton extends StatelessWidget {
+class Orb extends StatelessWidget {
   final String color;
   final double width;
   final double height;
   final bool isSelected;
-  final VoidCallback onPressed;
 
-  ColorButton(
+  Orb(
       {Key key,
       this.color = 'red',
       this.width = 50,
       this.height = 50,
-      this.isSelected = false,
-      this.onPressed})
+      this.isSelected = false})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      child: CustomPaint(
-        size: Size(width, height),
-        painter: DrawColorCircle(color: color, isSelected: isSelected),
-      ),
-      onTap: onPressed,
+    return CustomPaint(
+      size: Size(width, height),
+      painter: DrawOrb(color: color, isSelected: isSelected),
     );
   }
 }
 
-class DrawColorCircle extends CustomPainter {
+class DrawOrb extends CustomPainter {
   final String color;
   final bool isSelected;
 
-  DrawColorCircle({this.color, this.isSelected = false});
+  DrawOrb({this.color, this.isSelected = false});
 
   @override
   void paint(Canvas canvas, Size size) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 
 class CustomDialog extends StatelessWidget {
   /// Creates a dialog.
@@ -74,8 +73,7 @@ class CustomDialog extends StatelessWidget {
     final DialogTheme dialogTheme = DialogTheme.of(context);
     return AnimatedPadding(
       padding: MediaQuery.of(context).viewInsets +
-          EdgeInsets.symmetric(
-              horizontal: Platform.isIOS ? 30.0 : 35.0, vertical: 20.0),
+          EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
       duration: insetAnimationDuration,
       curve: insetAnimationCurve,
       child: MediaQuery.removeViewInsets(
