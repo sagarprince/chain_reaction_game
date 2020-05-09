@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
-import 'package:chain_reaction_game/utils/keys.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/models/player.dart';
+import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/positional_back_button.dart';
 import 'package:chain_reaction_game/widgets/animated_button.dart';
 import 'package:chain_reaction_game/widgets/color_chooser.dart';
-import 'package:chain_reaction_game/game_socket.dart';
 
 class MultiPlayerOnlineCreateGameScreen extends StatefulWidget {
   MultiPlayerOnlineCreateGameScreen({Key key}) : super(key: key);
@@ -18,6 +16,8 @@ class MultiPlayerOnlineCreateGameScreen extends StatefulWidget {
 
 class _MultiPlayerOnlineCreateGameState
     extends State<MultiPlayerOnlineCreateGameScreen> {
+  final createGameFormKey = new GlobalKey<FormState>();
+
   GameSocket _gameSocket;
   int playersCount = 2;
   String name = '';
@@ -32,21 +32,14 @@ class _MultiPlayerOnlineCreateGameState
   }
 
   void _onSubscriptions() {
-    _gameSocket.onSubscribeRespond((data) {
-      var res = jsonDecode(data);
-      _gameSocket.roomId = res['roomId'];
+    _gameSocket.onSubscribeRespond((_) {
       print('ROOM ID :- ${_gameSocket.roomId}');
     });
 
-    _gameSocket.onSubscribeJoined((data) {
-      print('CREATE GAME JOINED');
-      var res = jsonDecode(data);
-      print(res);
-      var players = res['players'];
-      if (playersCount == players.length) {
-        print('START GAME');
-      } else {
-        print('WAIT OTHER PLAYERS TO JOIN');
+    _gameSocket.onSubscribeJoined((status) {
+      print(status);
+      if (status == GamePlayStatus.START) {
+        _gameSocket.startGame(context);
       }
     });
   }
@@ -66,7 +59,7 @@ class _MultiPlayerOnlineCreateGameState
   }
 
   bool _validateForm() {
-    final FormState form = Keys.createGameFormKey.currentState;
+    final FormState form = createGameFormKey.currentState;
     FocusScope.of(context).requestFocus(new FocusNode());
     if (form != null) {
       return form.validate();
@@ -75,11 +68,10 @@ class _MultiPlayerOnlineCreateGameState
   }
 
   void _handleSubmit() {
-    final FormState form = Keys.createGameFormKey.currentState;
+    final FormState form = createGameFormKey.currentState;
     if (_validateForm()) {
       form.save();
-      _gameSocket.createGame(
-          {'playersCount': playersCount, 'player': Player(name, color, true)});
+      _gameSocket.createGame(playersCount, Player(name, color, true));
     }
   }
 
@@ -95,7 +87,7 @@ class _MultiPlayerOnlineCreateGameState
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Form(
-                    key: Keys.createGameFormKey,
+                    key: createGameFormKey,
                     child: Column(
                       children: <Widget>[
                         SizedBox(
@@ -259,7 +251,7 @@ class _MultiPlayerOnlineCreateGameState
   @override
   void dispose() {
     _gameSocket.onUnsubscribeRespond();
-    _gameSocket.disconnect();
+    _gameSocket.onUnsubscribeJoined();
     super.dispose();
   }
 }

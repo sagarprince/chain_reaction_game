@@ -49,6 +49,9 @@ class _VolumeButtonState extends State<VolumeButton> {
           onPressed: () {
             double vol = currentVol > 0.0 ? 0.0 : 100;
             VolumeWatcher.setVolume(vol);
+            setState(() {
+              currentVol = vol.toDouble();
+            });
           },
         )
       ],

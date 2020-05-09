@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
+import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:line_awesome_icons/line_awesome_icons.dart';
@@ -14,7 +15,6 @@ import 'package:chain_reaction_game/blocs/bloc.dart';
 import 'package:chain_reaction_game/blocs/events.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/player.dart';
-import 'package:chain_reaction_game/utils/styles.dart';
 
 class ResultScreen extends StatefulWidget {
   ResultScreen({Key key}) : super(key: key);
@@ -141,17 +141,20 @@ class _ResultScreenState extends State<ResultScreen> {
                   Navigator.of(context).pushReplacementNamed(AppRoutes.base);
                 },
               ),
-              SizedBox(width: 20.0),
-              IconButton(
-                icon: Icon(LineAwesomeIcons.refresh,
-                    color: AppColors.white, size: 32.0),
-                onPressed: () {
-                  isNavigating = true;
-                  _resetWinner(context);
-                  Navigator.of(context)
-                      .pushReplacementNamed(AppRoutes.play_game);
-                },
-              )
+              SizedBox(
+                  width: gameMode == GameMode.MultiPlayerOnline ? 0.0 : 20.0),
+              gameMode != GameMode.MultiPlayerOnline
+                  ? IconButton(
+                      icon: Icon(LineAwesomeIcons.refresh,
+                          color: AppColors.white, size: 32.0),
+                      onPressed: () {
+                        isNavigating = true;
+                        _resetWinner(context);
+                        Navigator.of(context)
+                            .pushReplacementNamed(AppRoutes.play_game);
+                      },
+                    )
+                  : SizedBox()
             ],
           )
         ],

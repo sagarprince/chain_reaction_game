@@ -35,8 +35,8 @@ class AppColors {
       case 'pink':
         return Colors.pinkAccent;
         break;
-      case 'orange':
-        return Colors.deepOrangeAccent;
+      case 'purple':
+        return Colors.purpleAccent;
         break;
       default:
         return Colors.red;

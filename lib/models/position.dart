@@ -14,6 +14,12 @@ class Position extends Equatable {
   @override
   List<Object> get props => [i, j];
 
+  Map<String, dynamic> toJson() => {'i': i, 'j': j};
+
+  factory Position.fromJson(Map<String, dynamic> json) {
+    return Position(json['i'], json['j']);
+  }
+
   @override
   bool get stringify => true;
 }

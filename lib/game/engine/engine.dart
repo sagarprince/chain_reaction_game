@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'package:flame/game.dart';
 import 'package:flutter/services.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/game/engine/board.dart';
 import 'package:chain_reaction_game/models/cell_info.dart';
+import 'package:chain_reaction_game/models/player.dart';
+import 'package:chain_reaction_game/game_socket.dart';
 
 class CREngine {
   CRState _state;
+  GameSocket _gameSocket;
 
   int rows = 9;
   int cols = 6;
@@ -38,13 +42,25 @@ class CREngine {
 
   CREngine(CRState state, [Function onWinner]) {
     this._state = state;
+    _gameSocket = GameSocket();
     this.allPlayers = _state.players;
     _playerTurn = allPlayers[0].color;
     _isBotEnabled = _state.gameMode == GameMode.PlayVersusBot ? true : false;
     this._board = Board(rows, cols, _isBotEnabled);
     this._players = _buildPlayers();
     this._onWinner = onWinner;
-//    _testing();
+    _socketSubscribers();
+  }
+
+  void _socketSubscribers() {
+    if (_state.gameMode == GameMode.MultiPlayerOnline) {
+      _gameSocket.onSubscribePlayedMove((data) {
+        print(data);
+        Position pos = Position.fromJson(data['pos']);
+        String player = data['player'];
+        makeMove(pos, player);
+      });
+    }
   }
 
   List<String> _buildPlayers() {
@@ -75,6 +91,9 @@ class CREngine {
   void humanMove(Position pos, String player) async {
     if (_isHumanPlayer(player)) {
       makeMove(pos, player);
+      if (_state.gameMode == GameMode.MultiPlayerOnline) {
+        _gameSocket.move(pos, player);
+      }
       await HapticFeedback.vibrate(); // vibrate
     }
   }
@@ -202,44 +221,18 @@ class CREngine {
     _winner = '';
   }
 
-  void destroy() {
-    reset();
-    if (_board.bot != null) {
-      _board.bot.stopIsolate();
+  void _socketUnSubscribers() {
+    if (_state.gameMode == GameMode.MultiPlayerOnline) {
+      _gameSocket.onUnsubscribePlayedMove();
+      _gameSocket.disconnect();
     }
   }
 
-  // Testing
-  void _testing() {
-    int total = rows * cols;
-    for (int k = 0; k < total; k++) {
-      int i = k ~/ cols; // determines i
-      int j = k % cols; // determines j
-
-      _pTurnIndex =
-          (_players.length - 1) == _pTurnIndex ? 0 : (_pTurnIndex + 1);
-      _playerTurn = _players[_pTurnIndex];
-      _totalMoves++;
-      _board.matrix[i][j][1] = CellInfo(player: _playerTurn);
-
-      // Corner Cells
-      if (((i == 0 && j == 0 ||
-          i == 0 && j == (cols - 1) ||
-          i == (rows - 1) && j == 0 ||
-          i == (rows - 1) && j == (cols - 1)))) {
-        _board.matrix[i][j][0] = 1;
-      }
-
-      // Vertical/Horizontal Side Cells
-      else if (((i > 0 && i < (rows - 1) && (j == 0 || j == (cols - 1))) ||
-          (j > 0 && j < (cols - 1) && (i == 0 || i == (rows - 1))))) {
-        _board.matrix[i][j][0] = 2;
-      }
-
-      // Middle Cells
-      else {
-        _board.matrix[i][j][0] = 3;
-      }
+  void destroy() {
+    reset();
+    _socketUnSubscribers();
+    if (_board.bot != null) {
+      _board.bot.stopIsolate();
     }
   }
 }
