@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'package:flame/game.dart';
 import 'package:flutter/services.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/game/engine/board.dart';
-import 'package:chain_reaction_game/models/cell_info.dart';
-import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 
 class CREngine {

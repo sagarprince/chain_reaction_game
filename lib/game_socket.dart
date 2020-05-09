@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:flutter_socket_io/flutter_socket_io.dart';
@@ -11,7 +10,8 @@ import 'package:chain_reaction_game/blocs/events.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/blocs/bloc.dart';
 
-const String URI = "http://192.168.0.103:4545";
+//const String URI = 'http://192.168.0.103:4545';
+const String URI = 'https://chain-reaction-server.herokuapp.com';
 
 enum GamePlayStatus { START, WAIT, ERROR, EXCEPTION }
 

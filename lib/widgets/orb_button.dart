@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/widgets/orb.dart';
 
 class OrbButton extends StatelessWidget {
