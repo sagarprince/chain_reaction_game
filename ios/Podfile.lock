@@ -1,4 +1,8 @@
 PODS:
+  - adhara_socket_io (0.0.1):
+    - Flutter
+    - Socket.IO-Client-Swift
+    - Starscream
   - assets_audio_player (0.0.1):
     - Flutter
   - audioplayers (0.0.1):
@@ -12,10 +16,14 @@ PODS:
     - Flutter
   - share (0.0.1):
     - Flutter
+  - Socket.IO-Client-Swift (15.2.0):
+    - Starscream (~> 3.1)
+  - Starscream (3.1.1)
   - volume_watcher (0.0.1):
     - Flutter
 
 DEPENDENCIES:
+  - adhara_socket_io (from `.symlinks/plugins/adhara_socket_io/ios`)
   - assets_audio_player (from `.symlinks/plugins/assets_audio_player/ios`)
   - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
   - Flutter (from `Flutter`)
@@ -25,7 +33,14 @@ DEPENDENCIES:
   - share (from `.symlinks/plugins/share/ios`)
   - volume_watcher (from `.symlinks/plugins/volume_watcher/ios`)
 
+SPEC REPOS:
+  trunk:
+    - Socket.IO-Client-Swift
+    - Starscream
+
 EXTERNAL SOURCES:
+  adhara_socket_io:
+    :path: ".symlinks/plugins/adhara_socket_io/ios"
   assets_audio_player:
     :path: ".symlinks/plugins/assets_audio_player/ios"
   audioplayers:
@@ -44,6 +59,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/volume_watcher/ios"
 
 SPEC CHECKSUMS:
+  adhara_socket_io: a2f8b3079a0de70a1a3f5080a8429a4fb7ae9bea
   assets_audio_player: 828c5761d1e51c569f40e622db3a2cbfd61ecb7d
   audioplayers: 84f968cea3f2deab00ec4f8ff53358b3c0b3992c
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
@@ -51,8 +67,10 @@ SPEC CHECKSUMS:
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
+  Socket.IO-Client-Swift: 1e3e3a1f09f3312a167f0d781eb2f383d477357c
+  Starscream: 4bb2f9942274833f7b4d296a55504dcfc7edb7b0
   volume_watcher: 8c3fccf94e46ef52bcb435644e8969ddc687c580
 
-PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
+PODFILE CHECKSUM: e45c292f618eeca3034958d33b444b6e1249b55f
 
 COCOAPODS: 1.8.4
