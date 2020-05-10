@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
-import 'package:flutter_socket_io/flutter_socket_io.dart';
-import 'package:flutter_socket_io/socket_io_manager.dart';
+import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:chain_reaction_game/utils/flushbar_helper.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/blocs/events.dart';
@@ -16,6 +17,7 @@ const String URI = 'https://chain-reaction-server.herokuapp.com';
 enum GamePlayStatus { START, WAIT, ERROR, EXCEPTION }
 
 class GameSocket {
+  SocketIOManager _ioManager;
   SocketIO _socketIO;
   bool isCreatedByMe = false;
   int roomId = -1;
@@ -24,6 +26,9 @@ class GameSocket {
   String myName = '';
   String myColor = '';
   bool isGameStarted = false;
+  bool isConnectionError = false;
+  bool _isShowConnectError = false;
+  bool _isReconnecting = false;
 
   static final GameSocket _singleton = GameSocket._internal();
 
@@ -31,48 +36,118 @@ class GameSocket {
 
   GameSocket._internal();
 
-  void connect() {
-    disconnect();
-    _socketIO = SocketIOManager().createSocketIO(URI, '/',
-        socketStatusCallback: (data) {
-      print('socketStatusCallback');
-      print(data);
-      if (data == 'connect_error') {
-        // Todo: show message connection error...
-      }
-      if (data == 'reconnect_error') {
-        // Todo: show message reconnecting...
-        print('RECONNECTION');
-      }
-    });
-    //call init socket
-    _socketIO.init();
-    //subscribe event
-    _socketIO.subscribe('socket_info', (data) {
-      print('Game Socket info: ' + data);
-    });
-    //connect socket
+  void connect() async {
+    _ioManager = SocketIOManager();
+    _socketIO = await _ioManager
+        .createInstance(SocketOptions(URI, nameSpace: '/', timeout: -1));
     _socketIO.connect();
+    _socketIO.onConnect((_) {
+      print('Connected');
+      if (_isReconnecting) {
+        _hideToast();
+      }
+      isConnectionError = false;
+      _isShowConnectError = false;
+      _isReconnecting = false;
+      _showToast('Connected', Duration(milliseconds: 1000));
+    });
+    _socketIO.onConnectError((_) {
+      isConnectionError = true;
+      if (!_isShowConnectError) {
+        _isShowConnectError = true;
+        _showToast(
+            'Connection Failed, Please check your internet connection...',
+            Duration(milliseconds: 1800));
+      }
+    });
+    _socketIO.onReconnecting((_) {
+      isConnectionError = true;
+      if (!_isReconnecting) {
+        _isReconnecting = true;
+        Future.delayed(Duration(milliseconds: 2000), () {
+          _hideToast();
+          Future.delayed(Duration(milliseconds: 300), () {
+            _showToast('Reconnecting...', null, false);
+          });
+        });
+      }
+    });
+    _socketIO.onReconnectFailed((_) {
+      isConnectionError = true;
+      _showToast('Reconnection Failed, Please check your internet connection.',
+          Duration(milliseconds: 2000));
+    });
   }
 
-  void createGame(int playersCount, Player player) {
+  void _showToast(String message, Duration duration,
+      [bool isDismissible = true]) {
+    FlushBarHelper.showToast(message, duration, isDismissible);
+  }
+
+  void _hideToast() {
+    FlushBarHelper.hideToast();
+  }
+
+  void _emit(String evenName, dynamic args) {
+    _socketIO.emit(evenName, [args]);
+  }
+
+  Future<dynamic> _emitWithAck(String evenName, dynamic args) async {
+    return _socketIO.emitWithAck(evenName, [args]);
+  }
+
+  Map<String, dynamic> _convertCreateJoinAck(data) {
+    Map<String, dynamic> response = {'gamePlayStatus': '', 'decoded': null};
+    try {
+      var status = data['status'];
+
+      if (status == 'created' || status == 'joined') {
+        roomId = data['roomId'];
+        playersCount = data['playersCount'];
+        players = data['players'];
+        response['gamePlayStatus'] = GamePlayStatus.WAIT;
+      }
+
+      if (status == 'joined') {
+        if (isReadyToStartGame(data)) {
+          isGameStarted = true;
+          response['gamePlayStatus'] = GamePlayStatus.START;
+        }
+      } else if (status == 'error') {
+        response['gamePlayStatus'] = GamePlayStatus.ERROR;
+      } else if (status == 'exception') {
+        response['gamePlayStatus'] = GamePlayStatus.EXCEPTION;
+      }
+
+      response['decoded'] = data;
+    } catch (e) {
+      print('Error $e');
+    }
+    return response;
+  }
+
+  Future<dynamic> createGame(int playersCount, Player player) async {
     var payload = {'playersCount': playersCount, 'player': player};
     myName = player.name;
     myColor = player.color;
     isCreatedByMe = true;
-    _socketIO.sendMessage('create_game', jsonEncode(payload));
+    var response = await _emitWithAck('create_game', jsonEncode(payload));
+    var data = response != null && response is List ? response[0] : null;
+    return _convertCreateJoinAck(data);
   }
 
-  void joinGame(int roomId, Player player) {
+  Future<dynamic> joinGame(int roomId, Player player) async {
     var payload = {'roomId': roomId, 'player': player};
     myName = player.name;
     myColor = player.color;
-    _socketIO.sendMessage('join_game', jsonEncode(payload));
+    var response = await _emitWithAck('join_game', jsonEncode(payload));
+    var data = response != null && response is List ? response[0] : null;
+    return _convertCreateJoinAck(data);
   }
 
   void removeGame() {
     var payload = {'roomId': roomId};
-    _socketIO.sendMessage('remove_game', jsonEncode(payload));
+    _emit('remove_game', jsonEncode(payload));
   }
 
   bool isReadyToStartGame(decoded) {
@@ -92,45 +167,10 @@ class GameSocket {
     Navigator.of(context).pushReplacementNamed(AppRoutes.play_game);
   }
 
-  void onSubscribeRespond(Function callback) {
-    _socketIO.subscribe('respond', (data) {
-      Map<String, dynamic> response = {'gamePlayStatus': '', 'decoded': null};
-      var decoded = jsonDecode(data);
-      var status = decoded['status'];
-
-      if (status == 'created' || status == 'joined') {
-        roomId = decoded['roomId'];
-        playersCount = decoded['playersCount'];
-        players = decoded['players'];
-        response['gamePlayStatus'] = GamePlayStatus.WAIT;
-      }
-
-      if (status == 'joined') {
-        if (isReadyToStartGame(decoded)) {
-          isGameStarted = true;
-          response['gamePlayStatus'] = GamePlayStatus.START;
-        }
-      } else if (status == 'error') {
-        response['gamePlayStatus'] = GamePlayStatus.ERROR;
-      } else if (status == 'exception') {
-        response['gamePlayStatus'] = GamePlayStatus.EXCEPTION;
-      }
-
-      response['decoded'] = decoded;
-      callback(response);
-    });
-  }
-
-  void onUnsubscribeRespond() {
-    _socketIO.unSubscribe('respond');
-  }
-
   void onSubscribeJoined(Function callback) {
-    _socketIO.subscribe('joined', (data) {
-      print('JOINED');
-      var decoded = jsonDecode(data);
-      players = decoded['players'];
-      if (this.isReadyToStartGame(decoded)) {
+    _socketIO.on('joined', (data) {
+      players = data['players'];
+      if (this.isReadyToStartGame(data)) {
         isGameStarted = true;
         callback(GamePlayStatus.START);
       } else {
@@ -140,26 +180,25 @@ class GameSocket {
   }
 
   void onUnsubscribeJoined() {
-    _socketIO.unSubscribe('joined');
+    _socketIO.off('joined');
   }
 
   void move(Position pos, String player) {
     var payload = {'roomId': roomId, 'pos': pos, 'player': player};
-    _socketIO.sendMessage('move', jsonEncode(payload));
+    _emit('move', jsonEncode(payload));
   }
 
   void onSubscribePlayedMove(Function callback) {
-    _socketIO.subscribe('on_played_move', (data) {
-      var decoded = jsonDecode(data);
-      callback(decoded);
+    _socketIO.on('on_played_move', (data) {
+      callback(data);
     });
   }
 
   void onUnsubscribePlayedMove() {
-    _socketIO.unSubscribe('on_played_move');
+    _socketIO.off('on_played_move');
   }
 
-  void disconnect() {
+  void disconnect() async {
     if (_socketIO != null) {
       isCreatedByMe = false;
       roomId = -1;
@@ -168,7 +207,10 @@ class GameSocket {
       myName = '';
       myColor = '';
       isGameStarted = false;
-      SocketIOManager().destroyAllSocket();
+      _isShowConnectError = false;
+      _isReconnecting = false;
+      await _ioManager.clearInstance(_socketIO);
+      print('Disconnected...');
     }
   }
 }

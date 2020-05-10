@@ -8,8 +8,6 @@ PODS:
   - audioplayers (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - flutter_socket_io (0.0.1):
-    - Flutter
   - path_provider (0.0.1):
     - Flutter
   - path_provider_macos (0.0.1):
@@ -27,7 +25,6 @@ DEPENDENCIES:
   - assets_audio_player (from `.symlinks/plugins/assets_audio_player/ios`)
   - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
   - Flutter (from `Flutter`)
-  - flutter_socket_io (from `.symlinks/plugins/flutter_socket_io/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - path_provider_macos (from `.symlinks/plugins/path_provider_macos/ios`)
   - share (from `.symlinks/plugins/share/ios`)
@@ -47,8 +44,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audioplayers/ios"
   Flutter:
     :path: Flutter
-  flutter_socket_io:
-    :path: ".symlinks/plugins/flutter_socket_io/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
   path_provider_macos:
@@ -63,7 +58,6 @@ SPEC CHECKSUMS:
   assets_audio_player: 828c5761d1e51c569f40e622db3a2cbfd61ecb7d
   audioplayers: 84f968cea3f2deab00ec4f8ff53358b3c0b3992c
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_socket_io: fce27977d95a82c181bd959180f33384f51a5973
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410

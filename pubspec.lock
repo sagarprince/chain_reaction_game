@@ -4,9 +4,11 @@ packages:
   adhara_socket_io:
     dependency: "direct main"
     description:
-      name: adhara_socket_io
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "8ee8bc84ffeb6e7edf94a880c244b041da850a2f"
+      url: "https://github.com/sagarprince/flutter_socket_client.git"
+    source: git
     version: "0.4.1"
   archive:
     dependency: transitive
@@ -127,6 +129,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.3"
+  flushbar:
+    dependency: "direct main"
+    description:
+      name: flushbar
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.10.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -139,15 +148,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  flutter_socket_io:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "95353413d53fb01fcb527216423ec3cb9ebe9f62"
-      url: "https://github.com/sagarprince/flutter_socket_io.git"
-    source: git
-    version: "0.6.0"
   flutter_svg:
     dependency: transitive
     description:
@@ -276,7 +276,7 @@ packages:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.5+1"
+    version: "4.1.1"
   quiver:
     dependency: transitive
     description:
@@ -395,5 +395,5 @@ packages:
     source: hosted
     version: "3.6.1"
 sdks:
-  dart: ">=2.6.0 <3.0.0"
-  flutter: ">=1.12.13+hotfix.5 <2.0.0"
+  dart: ">=2.7.2 <3.0.0"
+  flutter: ">=1.17.0 <2.0.0"

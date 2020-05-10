@@ -21,7 +21,7 @@ class Player extends Equatable {
   Map<String, dynamic> toJson() =>
       {'name': name, 'color': color, 'isHuman': isHuman};
 
-  factory Player.fromJson(Map<String, dynamic> json) {
+  factory Player.fromJson(dynamic json) {
     return Player(json['name'], json['color'], json['isHuman']);
   }
 

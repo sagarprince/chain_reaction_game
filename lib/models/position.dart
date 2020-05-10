@@ -16,7 +16,7 @@ class Position extends Equatable {
 
   Map<String, dynamic> toJson() => {'i': i, 'j': j};
 
-  factory Position.fromJson(Map<String, dynamic> json) {
+  factory Position.fromJson(dynamic json) {
     return Position(json['i'], json['j']);
   }
 

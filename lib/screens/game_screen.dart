@@ -8,10 +8,13 @@ import 'package:chain_reaction_game/game/engine/engine.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/keys.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
+import 'package:chain_reaction_game/utils/flushbar_helper.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/volume_button.dart';
 
 class GameScreen extends StatelessWidget {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   GameScreen({Key key}) : super(key: key);
 
   @override
@@ -24,6 +27,7 @@ class GameScreen extends StatelessWidget {
             message: 'Do you want to leave game?');
       },
       child: Scaffold(
+        key: _scaffoldKey,
         body: BlocBuilder<CRBloc, CRState>(
           condition: (prevState, state) {
             return prevState != state;
@@ -128,6 +132,7 @@ class _GameViewState extends State<GameView> {
 
   @override
   Widget build(BuildContext context) {
+    FlushBarHelper.init(context);
     return _game.widget;
   }
 
