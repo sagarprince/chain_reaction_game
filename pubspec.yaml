@@ -33,6 +33,7 @@ dependencies:
   volume_watcher: ^1.1.0
   flutter_socket_io:
     git: https://github.com/sagarprince/flutter_socket_io.git
+  adhara_socket_io: ^0.4.1
   share:
 
 dev_dependencies:
