@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
+import 'package:chain_reaction_game/utils/flushbar_helper.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
@@ -36,40 +37,12 @@ class _MultiPlayerOnlineJoinGameState
   @override
   void initState() {
     super.initState();
-    _gameSocket = GameSocket();
-    _gameSocket.connect();
-    _onSubscriptions();
+    _connect();
   }
 
-  void _onSubscriptions() {
-    _gameSocket.onSubscribeRespond((data) {
-      var gamePlayStatus = data['gamePlayStatus'];
-      var decoded = data['decoded'];
-      if (gamePlayStatus == GamePlayStatus.START) {
-        _gameSocket.startGame(context);
-      } else if (gamePlayStatus == GamePlayStatus.WAIT) {
-        Navigator.of(context)
-            .pushReplacementNamed(AppRoutes.multi_player_online_wait);
-      } else if (gamePlayStatus == GamePlayStatus.ERROR) {
-        if (decoded['status'] == 'error') {
-          FormState form = _formKey.currentState;
-          var code = decoded['code'];
-          var message = decoded['message'];
-          if (code == 'invalid_room_id' || code == 'room_full') {
-            roomIdError = message;
-          } else if (code == 'name_exist') {
-            nameError = message;
-          } else if (code == 'color_exist') {
-            colorError = message;
-          }
-          form.validate();
-        }
-      } else {
-        var message = decoded['message'];
-        _scaffoldKey.currentState
-            .showSnackBar(SnackBar(content: Text(message)));
-      }
-    });
+  void _connect() async {
+    _gameSocket = GameSocket();
+    _gameSocket.connect();
   }
 
   bool _validateForm() {
@@ -84,17 +57,48 @@ class _MultiPlayerOnlineJoinGameState
     return false;
   }
 
-  void _handleSubmit() {
+  void _validateJoinGameResponse(response) {
+    var gamePlayStatus = response['gamePlayStatus'];
+    var decoded = response['decoded'];
+    if (gamePlayStatus == GamePlayStatus.START) {
+      _gameSocket.startGame(context);
+    } else if (gamePlayStatus == GamePlayStatus.WAIT) {
+      Navigator.of(context)
+          .pushReplacementNamed(AppRoutes.multi_player_online_wait);
+    } else if (gamePlayStatus == GamePlayStatus.ERROR) {
+      if (decoded['status'] == 'error') {
+        FormState form = _formKey.currentState;
+        var code = decoded['code'];
+        var message = decoded['message'];
+        if (code == 'invalid_room_id' || code == 'room_full') {
+          roomIdError = message;
+        } else if (code == 'name_exist') {
+          nameError = message;
+        } else if (code == 'color_exist') {
+          colorError = message;
+        }
+        form.validate();
+      }
+    } else {
+      var message = decoded['message'];
+      _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  void _handleSubmit() async {
     final FormState form = _formKey.currentState;
     if (_validateForm()) {
       form.save();
-      _gameSocket.joinGame(roomId, Player(name, color, true));
+      var response =
+          await _gameSocket.joinGame(roomId, Player(name, color, true));
+      _validateJoinGameResponse(response);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
+    FlushBarHelper.init(context);
     return Scaffold(
       key: _scaffoldKey,
       body: Background(
@@ -258,7 +262,9 @@ class _MultiPlayerOnlineJoinGameState
                                     style: AppTextStyles.buttonText
                                         .copyWith(fontSize: 16.0)),
                                 onPressed: () {
-                                  _handleSubmit();
+                                  if (!_gameSocket.isConnectionError) {
+                                    _handleSubmit();
+                                  }
                                 }),
                           )
                         ],
@@ -275,7 +281,6 @@ class _MultiPlayerOnlineJoinGameState
 
   @override
   void dispose() {
-    _gameSocket.onUnsubscribeRespond();
     if (roomId == -1) {
       _gameSocket.disconnect();
     }

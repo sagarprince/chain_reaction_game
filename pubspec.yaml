@@ -14,7 +14,7 @@ description: Chain Reaction Game for Android &amp; IOS
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.5.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -31,10 +31,10 @@ dependencies:
   line_awesome_icons: ^1.0.4+2
   assets_audio_player: 1.4.0
   volume_watcher: ^1.1.0
-  flutter_socket_io:
-    git: https://github.com/sagarprince/flutter_socket_io.git
-  adhara_socket_io: ^0.4.1
+  adhara_socket_io:
+    git: https://github.com/sagarprince/flutter_socket_client.git
   share:
+  flushbar: ^1.10.2
 
 dev_dependencies:
   flutter_test:

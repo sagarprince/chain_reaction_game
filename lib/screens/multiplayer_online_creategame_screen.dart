@@ -1,7 +1,8 @@
-import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
+import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
+import 'package:chain_reaction_game/utils/flushbar_helper.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
@@ -29,27 +30,12 @@ class _MultiPlayerOnlineCreateGameState
   @override
   void initState() {
     super.initState();
-    _gameSocket = GameSocket();
-    _gameSocket.connect();
-    _onSubscriptions();
+    _connect();
   }
 
-  void _onSubscriptions() {
-    _gameSocket.onSubscribeRespond((response) {
-      var gamePlayStatus = response['gamePlayStatus'];
-      print(gamePlayStatus);
-      if (gamePlayStatus == GamePlayStatus.EXCEPTION) {
-        var decoded = response['decoded'];
-        var message = decoded['message'];
-        _scaffoldKey.currentState
-            .showSnackBar(SnackBar(content: Text(message)));
-      } else {
-        print('ROOM ID :- ${_gameSocket.roomId}');
-        _roomId = _gameSocket.roomId;
-        Navigator.of(context)
-            .pushReplacementNamed(AppRoutes.multi_player_online_wait);
-      }
-    });
+  void _connect() async {
+    _gameSocket = GameSocket();
+    _gameSocket.connect();
   }
 
   void setPlayersCount(bool isIncrement) {
@@ -75,17 +61,37 @@ class _MultiPlayerOnlineCreateGameState
     return false;
   }
 
-  void _handleSubmit() {
+  void _validateCreateGameResponse(response) {
+    var gamePlayStatus = response['gamePlayStatus'];
+    print(gamePlayStatus);
+    if (gamePlayStatus == GamePlayStatus.EXCEPTION) {
+      var decoded = response['decoded'];
+      var message = decoded['message'];
+      _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+    } else {
+      print('ROOM ID :- ${_gameSocket.roomId}');
+      _roomId = _gameSocket.roomId;
+      Navigator.of(context)
+          .pushReplacementNamed(AppRoutes.multi_player_online_wait);
+    }
+  }
+
+  void _handleSubmit() async {
     final FormState form = _formKey.currentState;
     if (_validateForm()) {
       form.save();
-      _gameSocket.createGame(playersCount, Player(name, color, true));
+      var response =
+          await _gameSocket.createGame(playersCount, Player(name, color, true));
+      _validateCreateGameResponse(response);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
+    if (_roomId == -1) {
+      FlushBarHelper.init(context);
+    }
     return Scaffold(
       key: _scaffoldKey,
       body: Background(
@@ -242,7 +248,9 @@ class _MultiPlayerOnlineCreateGameState
                                     style: AppTextStyles.buttonText
                                         .copyWith(fontSize: 16.0)),
                                 onPressed: () {
-                                  _handleSubmit();
+                                  if (!_gameSocket.isConnectionError) {
+                                    _handleSubmit();
+                                  }
                                 }),
                           )
                         ],
@@ -259,7 +267,6 @@ class _MultiPlayerOnlineCreateGameState
 
   @override
   void dispose() {
-    _gameSocket.onUnsubscribeRespond();
     if (_roomId == -1) {
       _gameSocket.disconnect();
     }
