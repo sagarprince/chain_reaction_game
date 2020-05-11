@@ -19,6 +19,7 @@ enum GamePlayStatus { START, WAIT, ERROR, EXCEPTION }
 class GameSocket {
   SocketIOManager _ioManager;
   SocketIO _socketIO;
+  bool _isReconnecting = false;
   bool isCreatedByMe = false;
   int roomId = -1;
   int playersCount = 2;
@@ -26,9 +27,6 @@ class GameSocket {
   String myName = '';
   String myColor = '';
   bool isGameStarted = false;
-  bool isConnectionError = false;
-  bool _isShowConnectError = false;
-  bool _isReconnecting = false;
 
   static final GameSocket _singleton = GameSocket._internal();
 
@@ -38,53 +36,68 @@ class GameSocket {
 
   void connect() async {
     _ioManager = SocketIOManager();
-    _socketIO = await _ioManager
-        .createInstance(SocketOptions(URI, nameSpace: '/', timeout: -1));
+    _socketIO = await _ioManager.createInstance(
+        SocketOptions(URI, nameSpace: '/', timeout: -1, enableLogging: false));
     _socketIO.connect();
-    _socketIO.onConnect((_) {
-      print('Connected');
+    _socketOnEventListeners();
+  }
+
+  void _socketOnEventListeners() {
+    _socketIO.onConnect((data) async {
+      print('Connected.');
+      reconnectedGame();
       if (_isReconnecting) {
-        _hideToast();
+        hideToast();
       }
-      isConnectionError = false;
-      _isShowConnectError = false;
       _isReconnecting = false;
-      _showToast('Connected', Duration(milliseconds: 1000));
+      showToast('Connected', Duration(milliseconds: 1000));
     });
-    _socketIO.onConnectError((_) {
-      isConnectionError = true;
-      if (!_isShowConnectError) {
-        _isShowConnectError = true;
-        _showToast(
-            'Connection Failed, Please check your internet connection...',
-            Duration(milliseconds: 1800));
-      }
-    });
-    _socketIO.onReconnecting((_) {
-      isConnectionError = true;
+    // Reconnecting Works for Android not on IOS.
+    _socketIO.onReconnecting((_) async {
+      print('RECONNECTING....');
       if (!_isReconnecting) {
-        _isReconnecting = true;
-        Future.delayed(Duration(milliseconds: 2000), () {
-          _hideToast();
-          Future.delayed(Duration(milliseconds: 300), () {
-            _showToast('Reconnecting...', null, false);
-          });
-        });
+        _showReconnecting();
       }
     });
-    _socketIO.onReconnectFailed((_) {
-      isConnectionError = true;
-      _showToast('Reconnection Failed, Please check your internet connection.',
-          Duration(milliseconds: 2000));
+    // Reconnecting workaround for IOS.
+    _socketIO.onReconnect((data) {
+      print('ReConnected');
+      print(data);
+      bool isDisconnected = false;
+      if (data != null) {
+        var err = data.toString().toLowerCase();
+        if (err.indexOf('disconnected') > -1 ||
+            err.indexOf('error') > -1 ||
+            err.indexOf('not connected') > -1) {
+          isDisconnected = true;
+        }
+      }
+      if (!_isReconnecting && isDisconnected) {
+        _showReconnecting();
+      }
     });
   }
 
-  void _showToast(String message, Duration duration,
+  void _showReconnecting() {
+    _isReconnecting = true;
+    Future.delayed(Duration(milliseconds: 2000), () {
+      hideToast();
+      Future.delayed(Duration(milliseconds: 300), () {
+        showToast('Reconnecting...', null, false);
+      });
+    });
+  }
+
+  Future<bool> isConnected() async {
+    return await _socketIO.isConnected();
+  }
+
+  void showToast(String message, Duration duration,
       [bool isDismissible = true]) {
     FlushBarHelper.showToast(message, duration, isDismissible);
   }
 
-  void _hideToast() {
+  void hideToast() {
     FlushBarHelper.hideToast();
   }
 
@@ -145,6 +158,11 @@ class GameSocket {
     return _convertCreateJoinAck(data);
   }
 
+  void reconnectedGame() {
+    var payload = {'roomId': roomId};
+    _emit('reconnected_game', jsonEncode(payload));
+  }
+
   void removeGame() {
     var payload = {'roomId': roomId};
     _emit('remove_game', jsonEncode(payload));
@@ -198,6 +216,12 @@ class GameSocket {
     _socketIO.off('on_played_move');
   }
 
+  void _socketOffEventListeners() async {
+    await _socketIO.off(SocketIO.CONNECT);
+    await _socketIO.off(SocketIO.RECONNECT);
+    await _socketIO.off(SocketIO.RECONNECTING);
+  }
+
   void disconnect() async {
     if (_socketIO != null) {
       isCreatedByMe = false;
@@ -207,8 +231,8 @@ class GameSocket {
       myName = '';
       myColor = '';
       isGameStarted = false;
-      _isShowConnectError = false;
       _isReconnecting = false;
+      _socketOffEventListeners();
       await _ioManager.clearInstance(_socketIO);
       print('Disconnected...');
     }

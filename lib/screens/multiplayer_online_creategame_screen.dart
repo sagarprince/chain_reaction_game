@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
@@ -77,12 +79,19 @@ class _MultiPlayerOnlineCreateGameState
   }
 
   void _handleSubmit() async {
-    final FormState form = _formKey.currentState;
-    if (_validateForm()) {
-      form.save();
-      var response =
-          await _gameSocket.createGame(playersCount, Player(name, color, true));
-      _validateCreateGameResponse(response);
+    bool isConnected = await _gameSocket.isConnected();
+    if (isConnected) {
+      final FormState form = _formKey.currentState;
+      if (_validateForm()) {
+        form.save();
+        var response = await _gameSocket.createGame(
+            playersCount, Player(name, color, true));
+        _validateCreateGameResponse(response);
+      }
+    } else {
+      _gameSocket.showToast(
+          'Unable to create game, make sure you are connected to internet.',
+          Duration(milliseconds: 2000));
     }
   }
 
@@ -248,9 +257,7 @@ class _MultiPlayerOnlineCreateGameState
                                     style: AppTextStyles.buttonText
                                         .copyWith(fontSize: 16.0)),
                                 onPressed: () {
-                                  if (!_gameSocket.isConnectionError) {
-                                    _handleSubmit();
-                                  }
+                                  _handleSubmit();
                                 }),
                           )
                         ],

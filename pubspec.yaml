@@ -35,6 +35,7 @@ dependencies:
     git: https://github.com/sagarprince/flutter_socket_client.git
   share:
   flushbar: ^1.10.2
+  rxdart: ^0.24.0
 
 dev_dependencies:
   flutter_test:

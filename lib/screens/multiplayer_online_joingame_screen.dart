@@ -86,12 +86,19 @@ class _MultiPlayerOnlineJoinGameState
   }
 
   void _handleSubmit() async {
-    final FormState form = _formKey.currentState;
-    if (_validateForm()) {
-      form.save();
-      var response =
-          await _gameSocket.joinGame(roomId, Player(name, color, true));
-      _validateJoinGameResponse(response);
+    bool isConnected = await _gameSocket.isConnected();
+    if (isConnected) {
+      final FormState form = _formKey.currentState;
+      if (_validateForm()) {
+        form.save();
+        var response =
+            await _gameSocket.joinGame(roomId, Player(name, color, true));
+        _validateJoinGameResponse(response);
+      }
+    } else {
+      _gameSocket.showToast(
+          'Unable to join game, make sure you are connected to internet.',
+          Duration(milliseconds: 2000));
     }
   }
 
@@ -262,9 +269,7 @@ class _MultiPlayerOnlineJoinGameState
                                     style: AppTextStyles.buttonText
                                         .copyWith(fontSize: 16.0)),
                                 onPressed: () {
-                                  if (!_gameSocket.isConnectionError) {
-                                    _handleSubmit();
-                                  }
+                                  _handleSubmit();
                                 }),
                           )
                         ],
