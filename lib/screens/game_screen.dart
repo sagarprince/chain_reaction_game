@@ -8,7 +8,6 @@ import 'package:chain_reaction_game/game/engine/engine.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/keys.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
-import 'package:chain_reaction_game/utils/flushbar_helper.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/volume_button.dart';
 
@@ -132,7 +131,7 @@ class _GameViewState extends State<GameView> {
 
   @override
   Widget build(BuildContext context) {
-    FlushBarHelper.init(context);
+    ;
     return _game.widget;
   }
 

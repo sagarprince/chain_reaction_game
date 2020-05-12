@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
-import 'package:chain_reaction_game/utils/flushbar_helper.dart';
+import 'package:chain_reaction_game/utils/data_connection_checker.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
@@ -22,6 +23,7 @@ class _MultiPlayerOnlineJoinGameState
   final _formKey = new GlobalKey<FormState>();
 
   GameSocket _gameSocket;
+  StreamSubscription<DataConnectionStatus> _connectionStatus;
   int roomId = -1;
   String name = '';
   String color = '';
@@ -43,6 +45,8 @@ class _MultiPlayerOnlineJoinGameState
   void _connect() async {
     _gameSocket = GameSocket();
     _gameSocket.connect();
+    _gameSocket.isFirstTimeConnect = true;
+    _connectionStatus = _gameSocket.onDataConnectionWatcher();
   }
 
   bool _validateForm() {
@@ -105,7 +109,6 @@ class _MultiPlayerOnlineJoinGameState
   @override
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
-    FlushBarHelper.init(context);
     return Scaffold(
       key: _scaffoldKey,
       body: Background(
@@ -289,6 +292,7 @@ class _MultiPlayerOnlineJoinGameState
     if (roomId == -1) {
       _gameSocket.disconnect();
     }
+    _connectionStatus.cancel();
     super.dispose();
   }
 }

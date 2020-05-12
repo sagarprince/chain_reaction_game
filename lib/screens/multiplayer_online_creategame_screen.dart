@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
-import 'package:chain_reaction_game/utils/flushbar_helper.dart';
+import 'package:chain_reaction_game/utils/data_connection_checker.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
@@ -24,6 +23,7 @@ class _MultiPlayerOnlineCreateGameState
   final _formKey = new GlobalKey<FormState>();
 
   GameSocket _gameSocket;
+  StreamSubscription<DataConnectionStatus> _connectionStatus;
   int _roomId = -1;
   int playersCount = 2;
   String name = '';
@@ -38,6 +38,8 @@ class _MultiPlayerOnlineCreateGameState
   void _connect() async {
     _gameSocket = GameSocket();
     _gameSocket.connect();
+    _gameSocket.isFirstTimeConnect = true;
+    _connectionStatus = _gameSocket.onDataConnectionWatcher();
   }
 
   void setPlayersCount(bool isIncrement) {
@@ -98,9 +100,6 @@ class _MultiPlayerOnlineCreateGameState
   @override
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
-    if (_roomId == -1) {
-      FlushBarHelper.init(context);
-    }
     return Scaffold(
       key: _scaffoldKey,
       body: Background(
@@ -277,6 +276,7 @@ class _MultiPlayerOnlineCreateGameState
     if (_roomId == -1) {
       _gameSocket.disconnect();
     }
+    _connectionStatus.cancel();
     super.dispose();
   }
 }

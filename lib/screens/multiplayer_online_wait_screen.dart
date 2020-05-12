@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
-import 'package:chain_reaction_game/utils/flushbar_helper.dart';
+import 'package:chain_reaction_game/utils/toast_helper.dart';
 import 'package:chain_reaction_game/game_socket.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/positional_back_button.dart';
@@ -94,7 +94,6 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
   @override
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
-    FlushBarHelper.init(context);
     return WillPopScope(
       onWillPop: () {
         return UiUtils.confirmDialog(
