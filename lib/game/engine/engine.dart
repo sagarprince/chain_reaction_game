@@ -146,8 +146,15 @@ class CREngine {
     if (_winner == '') {
       _setNextPlayer();
       _botMove();
+      _sendMatrixToServer();
     } else {
       _setWinner();
+    }
+  }
+
+  void _sendMatrixToServer() {
+    if (_state.gameMode == GameMode.MultiPlayerOnline) {
+      _gameSocket.setMatrix(_board.matrix);
     }
   }
 

@@ -12,8 +12,8 @@ import 'package:chain_reaction_game/blocs/events.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/blocs/bloc.dart';
 
-//const String URI = 'http://192.168.0.103:4545';
-const String URI = 'https://chain-reaction-server.herokuapp.com';
+const String URI = 'http://192.168.0.104:4545';
+//const String URI = 'https://chain-reaction-server.herokuapp.com';
 
 enum GamePlayStatus { START, WAIT, ERROR, EXCEPTION }
 
@@ -85,7 +85,6 @@ class GameSocket {
     // Reconnecting workaround for IOS.
     _socketIO.onReconnect((data) {
       print('ReConnected');
-      print(data);
       bool isDisconnected = false;
       if (data != null) {
         var err = data.toString().toLowerCase();
@@ -108,12 +107,8 @@ class GameSocket {
 
   void _showReconnecting() {
     _isReconnecting = true;
-    Future.delayed(Duration(milliseconds: 2000), () {
-      hideToast();
-      Future.delayed(Duration(milliseconds: 300), () {
-        showToast('Reconnecting...', null, true);
-      });
-    });
+    hideToast();
+    showToast('Reconnecting...', null, true);
   }
 
   Future<bool> isConnected() async {
@@ -237,6 +232,11 @@ class GameSocket {
   void move(Position pos, String player) {
     var payload = {'roomId': roomId, 'pos': pos, 'player': player};
     _emit('move', jsonEncode(payload));
+  }
+
+  void setMatrix(dynamic matrix) {
+    var payload = {'roomId': roomId, 'matrix': matrix};
+    _emit('set_matrix', jsonEncode(payload));
   }
 
   void onSubscribePlayedMove(Function callback) {
