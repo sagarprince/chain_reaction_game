@@ -17,14 +17,14 @@ class UiUtils {
       builder: (BuildContext context) {
         return AlertDialog(
             contentPadding:
-                EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+                EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
             content: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Container(
-                  width: 64.0,
-                  height: 64.0,
+                  width: 60.0,
+                  height: 60.0,
                   child: Image.asset('assets/images/stop.png'),
                 ),
                 SizedBox(height: 20.0),

@@ -3,7 +3,11 @@ import 'package:equatable/equatable.dart';
 // Game Player
 class Player extends Equatable {
   /// Convenient constructor.
-  Player([this.name = '', this.color = '', this.isHuman = false])
+  Player(
+      [this.name = '',
+      this.color = '',
+      this.isHuman = false,
+      this.isYou = false])
       : assert(isHuman != null);
 
   /// The Name.
@@ -15,14 +19,21 @@ class Player extends Equatable {
   /// The Human.
   final bool isHuman;
 
+  /// Is You
+  final bool isYou;
+
   @override
-  List<Object> get props => [name, color, isHuman];
+  List<Object> get props => [name, color, isHuman, isYou];
 
   Map<String, dynamic> toJson() =>
-      {'name': name, 'color': color, 'isHuman': isHuman};
+      {'name': name, 'color': color, 'isHuman': isHuman, 'isYou': isYou};
 
-  factory Player.fromJson(dynamic json) {
-    return Player(json['name'], json['color'], json['isHuman']);
+  factory Player.fromJson(dynamic json, [String myColor = '']) {
+    String name = json['name'] ?? '';
+    String color = json['color'] ?? '';
+    bool isHuman = json['isHuman'] ?? true;
+    bool isYou = myColor == color ? true : false;
+    return Player(name, color, isHuman, isYou);
   }
 
   @override

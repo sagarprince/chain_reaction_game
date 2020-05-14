@@ -61,10 +61,12 @@ class AppTextStyles {
       fontFamily: AppFonts.third, fontSize: 42.0, color: AppColors.cardinal);
   static const TextStyle buttonText =
       const TextStyle(color: AppColors.white, fontSize: 22.0);
-  static const TextStyle confirmationTitle =
-      const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600);
+  static const TextStyle confirmationTitle = const TextStyle(
+      fontFamily: AppFonts.primary,
+      fontSize: 22.0,
+      fontWeight: FontWeight.w600);
   static const TextStyle confirmationMessage =
-      const TextStyle(fontFamily: AppFonts.secondary, fontSize: 18.0);
+      const TextStyle(fontFamily: AppFonts.primary, fontSize: 18.0);
   static const TextStyle confirmationButton = const TextStyle(
       fontSize: 18.0, fontWeight: FontWeight.w400, color: AppColors.blackLight);
   static const TextStyle rulesHeading = const TextStyle(

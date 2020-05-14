@@ -119,10 +119,10 @@ class CRGameServer {
     return _socketIO.emitWithAck(evenName, [args]);
   }
 
-  ServerResponse _mapToServerResponse(data) {
+  ServerResponse _parseServerResponse(data) {
     ServerResponse response;
     try {
-      response = ServerResponse.fromJson(data);
+      response = ServerResponse.fromJson(data, myColor);
       if (response.status == 'created' || response.status == 'joined') {
         roomId = response.roomId;
         playersLimit = response.playersLimit;
@@ -153,7 +153,7 @@ class CRGameServer {
     isCreatedByMe = true;
     var response = await _emitWithAck('create_game', jsonEncode(payload));
     var data = response != null && response is List ? response[0] : null;
-    return _mapToServerResponse(data);
+    return _parseServerResponse(data);
   }
 
   Future<ServerResponse> joinGame(int roomId, Player player) async {
@@ -162,7 +162,7 @@ class CRGameServer {
     myColor = player.color;
     var response = await _emitWithAck('join_game', jsonEncode(payload));
     var data = response != null && response is List ? response[0] : null;
-    return _mapToServerResponse(data);
+    return _parseServerResponse(data);
   }
 
   void reJoinGame() {
@@ -188,7 +188,7 @@ class CRGameServer {
 
   void onSubscribeJoined(Function callback) {
     _socketIO.on('joined', (data) {
-      ServerResponse response = ServerResponse.fromJson(data);
+      ServerResponse response = ServerResponse.fromJson(data, myColor);
       players = response.players;
       if (isReadyToStartGame()) {
         isGameStarted = true;

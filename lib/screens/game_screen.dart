@@ -1,3 +1,4 @@
+import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:chain_reaction_game/blocs/bloc.dart';
@@ -10,6 +11,7 @@ import 'package:chain_reaction_game/utils/keys.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/volume_button.dart';
+import 'package:chain_reaction_game/widgets/players_listing.dart';
 
 class GameScreen extends StatelessWidget {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -62,16 +64,36 @@ class GameScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          IconButton(
-                            icon: Image.asset(
-                              'assets/images/close.png',
-                            ),
-                            iconSize: 32.0,
-                            onPressed: () {
-                              if (Navigator.canPop(context)) {
-                                Navigator.maybePop(context);
-                              }
-                            },
+                          Row(
+                            children: <Widget>[
+                              IconButton(
+                                icon: Image.asset(
+                                  'assets/images/close.png',
+                                ),
+                                iconSize: 32.0,
+                                onPressed: () {
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.maybePop(context);
+                                  }
+                                },
+                              ),
+                              state.gameMode != GameMode.PlayVersusBot
+                                  ? IconButton(
+                                      icon: Icon(Icons.group,
+                                          color: AppColors.white),
+                                      iconSize: 34.0,
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                            context: context,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (BuildContext context) {
+                                              return PlayersListing(
+                                                  players: state.players);
+                                            });
+                                      },
+                                    )
+                                  : SizedBox(),
+                            ],
                           ),
                           Row(
                             children: <Widget>[
@@ -120,8 +142,6 @@ class _GameViewState extends State<GameView> {
   @override
   void initState() {
     _engine = CREngine(widget.state, (winner) {
-      print('Winner');
-      print(winner);
       widget.bloc.add(SetWinnerEvent(winner));
       Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
     });

@@ -5,6 +5,7 @@ class Orb extends StatelessWidget {
   final String color;
   final double width;
   final double height;
+  final double radius;
   final bool isSelected;
 
   Orb(
@@ -12,6 +13,7 @@ class Orb extends StatelessWidget {
       this.color = 'red',
       this.width = 50,
       this.height = 50,
+      this.radius = 22,
       this.isSelected = false})
       : super(key: key);
 
@@ -19,16 +21,17 @@ class Orb extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(width, height),
-      painter: DrawOrb(color: color, isSelected: isSelected),
+      painter: DrawOrb(color: color, radius: radius, isSelected: isSelected),
     );
   }
 }
 
 class DrawOrb extends CustomPainter {
   final String color;
+  final double radius;
   final bool isSelected;
 
-  DrawOrb({this.color, this.isSelected = false});
+  DrawOrb({this.color, this.radius, this.isSelected = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,14 +59,14 @@ class DrawOrb extends CustomPainter {
         ..color = Colors.white
         ..strokeWidth = 5.0
         ..style = PaintingStyle.stroke;
-      canvas.drawCircle(Offset(x, y), 20, paintOutline);
+      canvas.drawCircle(Offset(x, y), radius, paintOutline);
     }
 
     final Paint paint = new Paint()
       ..color = Colors.white
       ..strokeWidth = 10.0
       ..shader = _gradient.createShader(circleRect);
-    canvas.drawCircle(Offset(x, y), 20, paint);
+    canvas.drawCircle(Offset(x, y), radius, paint);
   }
 
   @override

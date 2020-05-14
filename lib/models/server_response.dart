@@ -22,15 +22,14 @@ class ServerResponse {
       this.playersLimit = 2,
       this.players = const []});
 
-  factory ServerResponse.fromJson(dynamic json) {
+  factory ServerResponse.fromJson(dynamic json, [String myColor = '']) {
     List<dynamic> _players = json['players'] ?? [];
     List<Player> players = [];
     if (_players.length > 0) {
       _players.forEach((p) {
-        players.add(Player.fromJson(p));
+        players.add(Player.fromJson(p, myColor));
       });
     }
-    print('players $players');
     return ServerResponse(
         status: json['status'],
         code: json['code'] ?? '',

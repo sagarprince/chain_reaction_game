@@ -132,13 +132,14 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
                             ? Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 30.0),
                                 child: Text(
-                                    'Once all players joined you automatically navigated to game board.',
+                                    'Waiting for remaining players to join then you navigated to game board.',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.regularText
+                                        .copyWith(fontFamily: AppFonts.third)
                                         .copyWith(fontSize: 20.0)),
                               )
                             : SizedBox(),
-                        SizedBox(height: 20.0),
+                        SizedBox(height: 50.0),
                         _playerCard('You', _gameServer.myColor),
                         SizedBox(height: 20.0),
                         Text('VS',
