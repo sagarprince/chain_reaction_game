@@ -4,8 +4,9 @@ import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/utils/data_connection_checker.dart';
+import 'package:chain_reaction_game/models/server_response.dart';
 import 'package:chain_reaction_game/models/player.dart';
-import 'package:chain_reaction_game/game_socket.dart';
+import 'package:chain_reaction_game/game/cr_game_server.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/positional_back_button.dart';
 import 'package:chain_reaction_game/widgets/animated_button.dart';
@@ -22,16 +23,15 @@ class _MultiPlayerOnlineJoinGameState
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = new GlobalKey<FormState>();
 
-  GameSocket _gameSocket;
+  CRGameServer _gameServer;
   StreamSubscription<DataConnectionStatus> _connectionStatus;
-  int roomId = -1;
-  String name = '';
-  String color = '';
-  int playersCount = 2;
+  int _roomId = -1;
+  String _yourName = '';
+  String _yourColor = '';
 
-  String roomIdError = '';
-  String nameError = '';
-  String colorError = '';
+  String _roomIdError = '';
+  String _nameError = '';
+  String _colorError = '';
 
   final FocusNode _roomIdFocusNode = FocusNode();
   final FocusNode _nameFocusNode = FocusNode();
@@ -39,68 +39,67 @@ class _MultiPlayerOnlineJoinGameState
   @override
   void initState() {
     super.initState();
-    _connect();
+    _connectToServer();
   }
 
-  void _connect() async {
-    _gameSocket = GameSocket();
-    _gameSocket.connect();
-    _gameSocket.isFirstTimeConnect = true;
-    _connectionStatus = _gameSocket.onDataConnectionWatcher();
+  void _connectToServer() async {
+    _gameServer = CRGameServer();
+    _gameServer.connect();
+    _gameServer.isInitializeConnection = true;
+    _connectionStatus = _gameServer.onDataConnectionWatcher();
   }
 
   bool _validateForm() {
     final FormState form = _formKey.currentState;
     FocusScope.of(context).requestFocus(new FocusNode());
-    roomIdError = '';
-    nameError = '';
-    colorError = '';
+    _roomIdError = '';
+    _nameError = '';
+    _colorError = '';
     if (form != null) {
       return form.validate();
     }
     return false;
   }
 
-  void _validateJoinGameResponse(response) {
-    var gamePlayStatus = response['gamePlayStatus'];
-    var decoded = response['decoded'];
+  void _validateJoinGameResponse(ServerResponse response) {
+    var gamePlayStatus = response.gamePlayStatus;
     if (gamePlayStatus == GamePlayStatus.START) {
-      _gameSocket.startGame(context);
+      _gameServer.startGame(context);
     } else if (gamePlayStatus == GamePlayStatus.WAIT) {
       Navigator.of(context)
           .pushReplacementNamed(AppRoutes.multi_player_online_wait);
     } else if (gamePlayStatus == GamePlayStatus.ERROR) {
-      if (decoded['status'] == 'error') {
+      if (response.status == 'error') {
         FormState form = _formKey.currentState;
-        var code = decoded['code'];
-        var message = decoded['message'];
+        var code = response.code;
+        var message = response.message;
         if (code == 'invalid_room_id' || code == 'room_full') {
-          roomIdError = message;
+          _roomIdError = message;
         } else if (code == 'name_exist') {
-          nameError = message;
+          _nameError = message;
         } else if (code == 'color_exist') {
-          colorError = message;
+          _colorError = message;
         }
         form.validate();
       }
     } else {
-      var message = decoded['message'];
+      var message = response.message;
       _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   void _handleSubmit() async {
-    bool isConnected = await _gameSocket.isConnected();
+    bool isConnected = await _gameServer.isConnected();
     if (isConnected) {
       final FormState form = _formKey.currentState;
       if (_validateForm()) {
         form.save();
-        var response =
-            await _gameSocket.joinGame(roomId, Player(name, color, true));
+        var response = await _gameServer.joinGame(
+            _roomId, Player(_yourName, _yourColor, true));
         _validateJoinGameResponse(response);
       }
     } else {
-      _gameSocket.showToast(
+      _gameServer.showToast(
           'Unable to join game, make sure you are connected to internet.',
           Duration(milliseconds: 2000));
     }
@@ -150,16 +149,16 @@ class _MultiPlayerOnlineJoinGameState
                                 validator: (dynamic value) {
                                   if (value.trim() == '') {
                                     return 'Please enter room code.';
-                                  } else if (roomIdError != '') {
-                                    return roomIdError;
+                                  } else if (_roomIdError != '') {
+                                    return _roomIdError;
                                   }
                                   return null;
                                 },
                                 onSaved: (String value) {
-                                  roomId = int.parse(value);
+                                  _roomId = int.parse(value);
                                 },
                                 onFieldSubmitted: (_) {
-                                  if (name == '') {
+                                  if (_yourName == '') {
                                     _roomIdFocusNode.unfocus();
                                     FocusScope.of(context)
                                         .requestFocus(_nameFocusNode);
@@ -194,13 +193,13 @@ class _MultiPlayerOnlineJoinGameState
                                 validator: (String value) {
                                   if (value.trim() == '') {
                                     return 'Please enter your name.';
-                                  } else if (nameError != '') {
-                                    return nameError;
+                                  } else if (_nameError != '') {
+                                    return _nameError;
                                   }
                                   return null;
                                 },
                                 onSaved: (String value) {
-                                  name = value;
+                                  _yourName = value;
                                 },
                                 onFieldSubmitted: (_) {
                                   _validateForm();
@@ -212,10 +211,10 @@ class _MultiPlayerOnlineJoinGameState
                         SizedBox(height: 30.0),
                         FormField(
                           validator: (_) {
-                            if (color == '') {
+                            if (_yourColor == '') {
                               return 'Please select color.';
-                            } else if (colorError != '') {
-                              return colorError;
+                            } else if (_colorError != '') {
+                              return _colorError;
                             }
                             return null;
                           },
@@ -226,10 +225,10 @@ class _MultiPlayerOnlineJoinGameState
                                     style: AppTextStyles.regularText),
                                 SizedBox(height: 10.0),
                                 ColorChooser(
-                                  activeColor: color,
+                                  activeColor: _yourColor,
                                   onSelection: (String _color) {
                                     setState(() {
-                                      color = _color;
+                                      _yourColor = _color;
                                     });
                                     field.validate();
                                   },
@@ -289,8 +288,8 @@ class _MultiPlayerOnlineJoinGameState
 
   @override
   void dispose() {
-    if (roomId == -1) {
-      _gameSocket.disconnect();
+    if (_roomId == -1) {
+      _gameServer.disconnect();
     }
     _connectionStatus.cancel();
     super.dispose();

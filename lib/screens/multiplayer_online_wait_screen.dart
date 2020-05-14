@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
-import 'package:chain_reaction_game/utils/toast_helper.dart';
-import 'package:chain_reaction_game/game_socket.dart';
+import 'package:chain_reaction_game/models/server_response.dart';
+import 'package:chain_reaction_game/game/cr_game_server.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/positional_back_button.dart';
 import 'package:chain_reaction_game/widgets/share_room_code.dart';
@@ -15,28 +15,27 @@ class MultiPlayerOnlineWaitScreen extends StatefulWidget {
 
 class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  GameSocket _gameSocket;
+  CRGameServer _gameServer;
   int _roomId = -1;
-  int _playersCount = 2;
+  int _playersLimit = 2;
   String _myColor = '';
 
   @override
   void initState() {
     super.initState();
-    _gameSocket = GameSocket();
-    _roomId = _gameSocket.roomId;
-    _playersCount = _gameSocket.playersCount;
-    _myColor = _gameSocket.myColor;
+    _gameServer = CRGameServer();
+    _roomId = _gameServer.roomId;
+    _playersLimit = _gameServer.playersLimit;
+    _myColor = _gameServer.myColor;
     _onSubscriptions();
   }
 
   void _onSubscriptions() {
-    _gameSocket.onSubscribeJoined((status) {
-      print('STATUS $status');
+    _gameServer.onSubscribeJoined((status) {
       setState(() {});
       if (status == GamePlayStatus.START) {
         Future.delayed(Duration(milliseconds: 200), () {
-          _gameSocket.startGame(context);
+          _gameServer.startGame(context);
         });
       }
     });
@@ -69,11 +68,11 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
 
   Widget _playersWaitingList() {
     List<Widget> _list = [];
-    for (int i = 0; i < _playersCount; i++) {
-      if (_gameSocket.players.asMap().containsKey(i)) {
-        var player = _gameSocket.players[i];
-        if (player['color'] != _myColor) {
-          _list.add(_playerCard(player['name'], player['color']));
+    for (int i = 0; i < _playersLimit; i++) {
+      if (_gameServer.players.asMap().containsKey(i)) {
+        var player = _gameServer.players[i];
+        if (player.color != _myColor) {
+          _list.add(_playerCard(player.name, player.color));
         }
       } else {
         _list.add(_playerCard('Waiting', '', true));
@@ -101,8 +100,8 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
             title: 'Leave Game',
             message: 'Do you want to leave game?',
             callback: () {
-              if (_gameSocket.isCreatedByMe) {
-                _gameSocket.removeGame();
+              if (_gameServer.isCreatedByMe) {
+                _gameServer.removeGame();
               } else {
                 // Todo: Remove Player from List who join game
               }
@@ -123,13 +122,13 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
                             height: !UiUtils.isKeyboardOpened(context)
                                 ? 20
                                 : paddingTop + 40),
-                        _gameSocket.isCreatedByMe
+                        _gameServer.isCreatedByMe
                             ? ShareRoomCode(
                                 scaffoldKey: _scaffoldKey,
                                 roomId: _roomId,
                               )
                             : SizedBox(),
-                        !_gameSocket.isCreatedByMe
+                        !_gameServer.isCreatedByMe
                             ? Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 30.0),
                                 child: Text(
@@ -140,7 +139,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
                               )
                             : SizedBox(),
                         SizedBox(height: 20.0),
-                        _playerCard('You', _gameSocket.myColor),
+                        _playerCard('You', _gameServer.myColor),
                         SizedBox(height: 20.0),
                         Text('VS',
                             textAlign: TextAlign.center,
@@ -162,9 +161,9 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
 
   @override
   void dispose() {
-    _gameSocket.onUnsubscribeJoined();
-    if (!_gameSocket.isGameStarted) {
-      _gameSocket.disconnect();
+    _gameServer.onUnsubscribeJoined();
+    if (!_gameServer.isGameStarted) {
+      _gameServer.disconnect();
     }
     super.dispose();
   }

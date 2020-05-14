@@ -51,7 +51,7 @@ class DataConnectionChecker {
   /// | 8.8.4.4        | Google     | https://developers.google.com/speed/public-dns/ |
   /// | 208.67.222.222 | OpenDNS    | https://use.opendns.com/                        |
   /// | 208.67.220.220 | OpenDNS    | https://use.opendns.com/                        |
-  static final List<AddressCheckOptions> DEFAULT_ADDRESSES = List.unmodifiable([
+  static final List<AddressCheckOptions> defaultAddresses = List.unmodifiable([
     AddressCheckOptions(
       InternetAddress('1.1.1.1'),
       port: DEFAULT_PORT,
@@ -72,7 +72,7 @@ class DataConnectionChecker {
   /// A list of internet addresses (with port and timeout) to ping.
   ///
   /// These should be globally available destinations.
-  /// Default is [DEFAULT_ADDRESSES].
+  /// Default is [defaultAddresses].
   ///
   /// When [hasConnection] or [connectionStatus] is called,
   /// this utility class tries to ping every address in this list.
@@ -81,7 +81,7 @@ class DataConnectionChecker {
   /// but you can, of course, supply your own.
   ///
   /// See [AddressCheckOptions] for more info.
-  List<AddressCheckOptions> addresses = DEFAULT_ADDRESSES;
+  List<AddressCheckOptions> addresses = defaultAddresses;
 
   /// This is a singleton that can be accessed like a regular constructor
   /// i.e. DataConnectionChecker() always returns the same instance.

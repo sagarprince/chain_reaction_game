@@ -20,18 +20,18 @@ class MultiPlayerOfflineScreen extends StatefulWidget {
 }
 
 class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
-  List<Map<String, dynamic>> players = [];
-  List<Map<String, dynamic>> tempPlayers = [];
-  int playersCount = 2;
-  TextEditingController controller;
+  List<Map<String, dynamic>> _players = [];
+  List<Map<String, dynamic>> _tempPlayers = [];
+  int _playersLimit = 2;
+  TextEditingController _controller;
 
   @override
   void initState() {
-    controller = TextEditingController();
-    for (int i = 0; i < playersCount; i++) {
-      players.add(_playerToMap((i + 1), 'Player ${i + 1}', '', false));
+    _controller = TextEditingController();
+    for (int i = 0; i < _playersLimit; i++) {
+      _players.add(_playerToMap((i + 1), 'Player ${i + 1}', '', false));
     }
-    tempPlayers = players;
+    _tempPlayers = _players;
     super.initState();
   }
 
@@ -60,7 +60,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
 
   List<String> get disabledColors {
     List<String> colors = [];
-    players.forEach((p) {
+    _players.forEach((p) {
       String color = p['color'];
       if (color != '') {
         colors.add(color);
@@ -69,45 +69,45 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
     return colors;
   }
 
-  void setPlayersCount(bool isIncrement) {
+  void setPlayersLimit(bool isIncrement) {
     setState(() {
       if (isIncrement) {
-        if (playersCount < 5) {
-          playersCount = playersCount + 1;
+        if (_playersLimit < 5) {
+          _playersLimit = _playersLimit + 1;
         }
       } else {
-        if (playersCount > 2) {
-          playersCount = playersCount - 1;
+        if (_playersLimit > 2) {
+          _playersLimit = _playersLimit - 1;
         }
       }
-      players = [];
-      for (int i = 0; i < playersCount; i++) {
+      _players = [];
+      for (int i = 0; i < _playersLimit; i++) {
         int id = (i + 1);
-        int index = tempPlayers.indexWhere((p) => p['id'] == id);
+        int index = _tempPlayers.indexWhere((p) => p['id'] == id);
         String name =
-            index > -1 ? tempPlayers[index]['name'] : 'Player ${i + 1}';
-        String color = index > -1 ? tempPlayers[index]['color'] : '';
-        players.add(_playerToMap(id, name, color, false));
+            index > -1 ? _tempPlayers[index]['name'] : 'Player ${i + 1}';
+        String color = index > -1 ? _tempPlayers[index]['color'] : '';
+        _players.add(_playerToMap(id, name, color, false));
       }
-      tempPlayers = players;
+      _tempPlayers = _players;
     });
   }
 
   bool isPlayersColorsSelected() {
     List<String> colors = [];
-    players.forEach((p) {
+    _players.forEach((p) {
       if (p['color'] != '') {
         colors.add(p['color']);
       }
     });
-    if (colors.length == playersCount) {
+    if (colors.length == _playersLimit) {
       return true;
     }
     return false;
   }
 
   void setPlayerNameEditing([Map<String, dynamic> player]) {
-    players = players.map((p) {
+    _players = _players.map((p) {
       p['isEditing'] = false;
       return p;
     }).toList();
@@ -142,7 +142,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                     ],
                   ),
                   onTap: () {
-                    controller.text = name;
+                    _controller.text = name;
                     setPlayerNameEditing(player);
                   },
                 )
@@ -152,7 +152,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                     children: <Widget>[
                       Expanded(
                         child: TextField(
-                          controller: controller,
+                          controller: _controller,
                           maxLength: 24,
                           decoration: InputDecoration(
                             enabledBorder: UnderlineInputBorder(
@@ -213,7 +213,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        children: players.map((p) {
+                        children: _players.map((p) {
                           return playerWidget(p);
                         }).toList(),
                       ),
@@ -243,13 +243,13 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                                     child: Icon(Icons.remove,
                                         size: 35.0, color: AppColors.white),
                                     onPressed: () {
-                                      setPlayersCount(false);
+                                      setPlayersLimit(false);
                                     }),
                               ),
                               SizedBox(
                                 width: 100.0,
                                 child: Center(
-                                  child: Text(playersCount.toString(),
+                                  child: Text(_playersLimit.toString(),
                                       style: AppTextStyles.regularText
                                           .copyWith(fontSize: 24.0)),
                                 ),
@@ -261,7 +261,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                                   child: Icon(Icons.add,
                                       size: 35.0, color: AppColors.white),
                                   onPressed: () {
-                                    setPlayersCount(true);
+                                    setPlayersLimit(true);
                                   },
                                 ),
                               )
@@ -294,7 +294,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                                   BlocProvider.of<CRBloc>(context).add(
                                       StartGameEvent(
                                           gameMode: GameMode.MultiPlayerOffline,
-                                          players: players
+                                          players: _players
                                               .map((p) => _playerFromMap(p))
                                               .toList()));
                                   Navigator.of(context)
@@ -315,7 +315,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
 
   @override
   void dispose() {
-    controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 }

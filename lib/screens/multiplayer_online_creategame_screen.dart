@@ -4,8 +4,9 @@ import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/utils/data_connection_checker.dart';
+import 'package:chain_reaction_game/models/server_response.dart';
 import 'package:chain_reaction_game/models/player.dart';
-import 'package:chain_reaction_game/game_socket.dart';
+import 'package:chain_reaction_game/game/cr_game_server.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
 import 'package:chain_reaction_game/widgets/positional_back_button.dart';
 import 'package:chain_reaction_game/widgets/animated_button.dart';
@@ -22,35 +23,35 @@ class _MultiPlayerOnlineCreateGameState
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = new GlobalKey<FormState>();
 
-  GameSocket _gameSocket;
+  CRGameServer _gameServer;
   StreamSubscription<DataConnectionStatus> _connectionStatus;
   int _roomId = -1;
-  int playersCount = 2;
-  String name = '';
-  String color = '';
+  int _playersLimit = 2;
+  String _yourName = '';
+  String _yourColor = '';
 
   @override
   void initState() {
     super.initState();
-    _connect();
+    _connectToServer();
   }
 
-  void _connect() async {
-    _gameSocket = GameSocket();
-    _gameSocket.connect();
-    _gameSocket.isFirstTimeConnect = true;
-    _connectionStatus = _gameSocket.onDataConnectionWatcher();
+  void _connectToServer() async {
+    _gameServer = CRGameServer();
+    _gameServer.connect();
+    _gameServer.isInitializeConnection = true;
+    _connectionStatus = _gameServer.onDataConnectionWatcher();
   }
 
-  void setPlayersCount(bool isIncrement) {
+  void setPlayersLimit(bool isIncrement) {
     setState(() {
       if (isIncrement) {
-        if (playersCount < 5) {
-          playersCount = playersCount + 1;
+        if (_playersLimit < 5) {
+          _playersLimit = _playersLimit + 1;
         }
       } else {
-        if (playersCount > 2) {
-          playersCount = playersCount - 1;
+        if (_playersLimit > 2) {
+          _playersLimit = _playersLimit - 1;
         }
       }
     });
@@ -65,33 +66,30 @@ class _MultiPlayerOnlineCreateGameState
     return false;
   }
 
-  void _validateCreateGameResponse(response) {
-    var gamePlayStatus = response['gamePlayStatus'];
-    print(gamePlayStatus);
+  void _validateCreateGameResponse(ServerResponse response) {
+    var gamePlayStatus = response.gamePlayStatus;
     if (gamePlayStatus == GamePlayStatus.EXCEPTION) {
-      var decoded = response['decoded'];
-      var message = decoded['message'];
-      _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+      _scaffoldKey.currentState
+          .showSnackBar(SnackBar(content: Text(response.message)));
     } else {
-      print('ROOM ID :- ${_gameSocket.roomId}');
-      _roomId = _gameSocket.roomId;
+      _roomId = _gameServer.roomId;
       Navigator.of(context)
           .pushReplacementNamed(AppRoutes.multi_player_online_wait);
     }
   }
 
   void _handleSubmit() async {
-    bool isConnected = await _gameSocket.isConnected();
+    bool isConnected = await _gameServer.isConnected();
     if (isConnected) {
       final FormState form = _formKey.currentState;
       if (_validateForm()) {
         form.save();
-        var response = await _gameSocket.createGame(
-            playersCount, Player(name, color, true));
+        var response = await _gameServer.createGame(
+            _playersLimit, Player(_yourName, _yourColor, true));
         _validateCreateGameResponse(response);
       }
     } else {
-      _gameSocket.showToast(
+      _gameServer.showToast(
           'Unable to create game, make sure you are connected to internet.',
           Duration(milliseconds: 2000));
     }
@@ -132,13 +130,13 @@ class _MultiPlayerOnlineCreateGameState
                                       child: Icon(Icons.remove,
                                           size: 30.0, color: AppColors.white),
                                       onPressed: () {
-                                        setPlayersCount(false);
+                                        setPlayersLimit(false);
                                       }),
                                 ),
                                 SizedBox(
                                   width: 100.0,
                                   child: Center(
-                                    child: Text(playersCount.toString(),
+                                    child: Text(_playersLimit.toString(),
                                         style: AppTextStyles.regularText
                                             .copyWith(fontSize: 24.0)),
                                   ),
@@ -150,7 +148,7 @@ class _MultiPlayerOnlineCreateGameState
                                     child: Icon(Icons.add,
                                         size: 30.0, color: AppColors.white),
                                     onPressed: () {
-                                      setPlayersCount(true);
+                                      setPlayersLimit(true);
                                     },
                                   ),
                                 )
@@ -186,7 +184,7 @@ class _MultiPlayerOnlineCreateGameState
                                   return null;
                                 },
                                 onSaved: (String value) {
-                                  name = value;
+                                  _yourName = value;
                                 },
                                 onFieldSubmitted: (_) {
                                   _validateForm();
@@ -198,7 +196,7 @@ class _MultiPlayerOnlineCreateGameState
                         SizedBox(height: 40.0),
                         FormField(
                           validator: (_) {
-                            if (color == '') {
+                            if (_yourColor == '') {
                               return 'Please select color.';
                             }
                             return null;
@@ -210,10 +208,10 @@ class _MultiPlayerOnlineCreateGameState
                                     style: AppTextStyles.regularText),
                                 SizedBox(height: 10.0),
                                 ColorChooser(
-                                  activeColor: color,
+                                  activeColor: _yourColor,
                                   onSelection: (String _color) {
                                     setState(() {
-                                      color = _color;
+                                      _yourColor = _color;
                                     });
                                     field.validate();
                                   },
@@ -274,7 +272,7 @@ class _MultiPlayerOnlineCreateGameState
   @override
   void dispose() {
     if (_roomId == -1) {
-      _gameSocket.disconnect();
+      _gameServer.disconnect();
     }
     _connectionStatus.cancel();
     super.dispose();

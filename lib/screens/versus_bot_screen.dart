@@ -19,14 +19,14 @@ class VersusBotScreen extends StatefulWidget {
 }
 
 class _VersusBotScreenState extends State<VersusBotScreen> {
-  String yourColor = '';
-  String botColor = '';
-  bool isBotChoosingColor = false;
+  String _yourColor = '';
+  String _botColor = '';
+  bool _isBotChoosingColor = false;
 
   String getBotColor() {
     int index = Random().nextInt(PlayerColors.length);
     String color = PlayerColors[index];
-    if (color == yourColor) {
+    if (color == _yourColor) {
       color = getBotColor();
     }
     return color;
@@ -35,8 +35,8 @@ class _VersusBotScreenState extends State<VersusBotScreen> {
   void botChoosingColor() {
     Timer(Duration(milliseconds: 1500), () {
       setState(() {
-        isBotChoosingColor = false;
-        botColor = getBotColor();
+        _isBotChoosingColor = false;
+        _botColor = getBotColor();
       });
     });
   }
@@ -65,24 +65,25 @@ class _VersusBotScreenState extends State<VersusBotScreen> {
                             style: AppTextStyles.mediumText),
                         SizedBox(height: 20.0),
                         ColorChooser(
-                          disabled: isBotChoosingColor,
-                          activeColor: yourColor,
+                          disabled: _isBotChoosingColor,
+                          activeColor: _yourColor,
                           onSelection: (String color) {
                             setState(() {
-                              yourColor = color;
-                              isBotChoosingColor = true;
+                              _yourColor = color;
+                              _isBotChoosingColor = true;
                             });
                             botChoosingColor();
                           },
                         ),
                         SizedBox(height: 40.0),
-                        yourColor != ''
-                            ? Text(isBotChoosingColor ? 'Wait...' : 'Bot Color',
+                        _yourColor != ''
+                            ? Text(
+                                _isBotChoosingColor ? 'Wait...' : 'Bot Color',
                                 style: AppTextStyles.mediumText)
                             : SizedBox(),
-                        yourColor != ''
+                        _yourColor != ''
                             ? ColorChooser(
-                                activeColor: botColor,
+                                activeColor: _botColor,
                               )
                             : SizedBox()
                       ],
@@ -93,9 +94,10 @@ class _VersusBotScreenState extends State<VersusBotScreen> {
             ),
             AnimatedPositioned(
               duration: Duration(milliseconds: 400),
-              bottom: (yourColor != '' && botColor != '' && !isBotChoosingColor)
-                  ? 10
-                  : -200,
+              bottom:
+                  (_yourColor != '' && _botColor != '' && !_isBotChoosingColor)
+                      ? 10
+                      : -200,
               curve: Curves.easeIn,
               child: Container(
                 width: MediaQuery.of(context).size.width,
@@ -113,8 +115,8 @@ class _VersusBotScreenState extends State<VersusBotScreen> {
                             BlocProvider.of<CRBloc>(context).add(StartGameEvent(
                                 gameMode: GameMode.PlayVersusBot,
                                 players: [
-                                  Player('You', yourColor, true),
-                                  Player('Bot', botColor, false),
+                                  Player('You', _yourColor, true),
+                                  Player('Bot', _botColor, false),
                                 ]));
                             Navigator.of(context)
                                 .pushNamed(AppRoutes.play_game);

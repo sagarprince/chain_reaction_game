@@ -4,11 +4,11 @@ import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/game/engine/board.dart';
-import 'package:chain_reaction_game/game_socket.dart';
+import 'package:chain_reaction_game/game/cr_game_server.dart';
 
 class CREngine {
   CRState _state;
-  GameSocket _gameSocket;
+  CRGameServer _gameServer;
 
   int rows = 9;
   int cols = 6;
@@ -39,7 +39,7 @@ class CREngine {
 
   CREngine(CRState state, [Function onWinner]) {
     this._state = state;
-    _gameSocket = GameSocket();
+    _gameServer = CRGameServer();
     this.allPlayers = _state.players;
     _playerTurn = allPlayers[0].color;
     _isBotEnabled = _state.gameMode == GameMode.PlayVersusBot ? true : false;
@@ -76,7 +76,7 @@ class CREngine {
 
   void _socketSubscribers() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      _gameSocket.onSubscribePlayedMove((data) {
+      _gameServer.onSubscribePlayedMove((data) {
         print(data);
         Position pos = Position.fromJson(data['pos']);
         String player = data['player'];
@@ -89,7 +89,7 @@ class CREngine {
     if (_isHumanPlayer(player)) {
       if (_state.gameMode == GameMode.MultiPlayerOnline && _isYou(player)) {
         makeMove(pos, player);
-        _gameSocket.move(pos, player);
+        _gameServer.move(pos, player);
         await HapticFeedback.vibrate(); // vibrate
       }
       if (_state.gameMode == GameMode.PlayVersusBot ||
@@ -146,15 +146,15 @@ class CREngine {
     if (_winner == '') {
       _setNextPlayer();
       _botMove();
-      _sendMatrixToServer();
+      _sendMatrixBoardToServer();
     } else {
       _setWinner();
     }
   }
 
-  void _sendMatrixToServer() {
+  void _sendMatrixBoardToServer() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      _gameSocket.setMatrix(_board.matrix);
+      _gameServer.sendMatrixBoard(_board.matrix);
     }
   }
 
@@ -211,7 +211,7 @@ class CREngine {
   }
 
   bool _isYou(String color) {
-    return _gameSocket.myColor == color;
+    return _gameServer.myColor == color;
   }
 
   bool _isBotPlayer(String color) {
@@ -236,8 +236,8 @@ class CREngine {
 
   void _socketUnSubscribers() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      _gameSocket.onUnsubscribePlayedMove();
-      _gameSocket.disconnect();
+      _gameServer.onUnsubscribePlayedMove();
+      _gameServer.disconnect();
     }
   }
 
