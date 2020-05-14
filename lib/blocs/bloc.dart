@@ -16,6 +16,10 @@ class CRBloc extends Bloc<CREvent, CRState> {
         var args = (event as StartGameEvent);
         yield state.copyWith(gameMode: args.gameMode, players: args.players);
         break;
+      case SetPlayersEvent:
+        var args = (event as SetPlayersEvent);
+        yield state.copyWith(players: args.players);
+        break;
       case SetWinnerEvent:
         var args = (event as SetWinnerEvent);
         yield state.copyWith(winner: args.winner);

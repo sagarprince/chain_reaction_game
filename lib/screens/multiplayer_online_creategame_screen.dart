@@ -20,7 +20,6 @@ class MultiPlayerOnlineCreateGameScreen extends StatefulWidget {
 
 class _MultiPlayerOnlineCreateGameState
     extends State<MultiPlayerOnlineCreateGameScreen> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = new GlobalKey<FormState>();
 
   CRGameServer _gameServer;
@@ -69,8 +68,7 @@ class _MultiPlayerOnlineCreateGameState
   void _validateCreateGameResponse(ServerResponse response) {
     var gamePlayStatus = response.gamePlayStatus;
     if (gamePlayStatus == GamePlayStatus.EXCEPTION) {
-      _scaffoldKey.currentState
-          .showSnackBar(SnackBar(content: Text(response.message)));
+      _gameServer.showToast(response.message, Duration(milliseconds: 2000));
     } else {
       _roomId = _gameServer.roomId;
       Navigator.of(context)
@@ -99,7 +97,6 @@ class _MultiPlayerOnlineCreateGameState
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Scaffold(
-      key: _scaffoldKey,
       body: Background(
         child: Stack(
           children: <Widget>[

@@ -215,7 +215,8 @@ class CRGameServer {
 
   void onSubscribePlayedMove(Function callback) {
     _socketIO.on('on_played_move', (data) {
-      callback(data);
+      ServerResponse response = ServerResponse.fromJson(data);
+      callback(response);
     });
   }
 
@@ -223,9 +224,36 @@ class CRGameServer {
     _socketIO.off('on_played_move');
   }
 
+  void removePlayerFromGame() {
+    var payload = {'roomId': roomId, 'player': myColor};
+    _emit('remove_player_from_game', jsonEncode(payload));
+  }
+
+  void onSubscribePlayerRemoved(Function callback) {
+    _socketIO.on('on_player_removed', (data) {
+      ServerResponse response = ServerResponse.fromJson(data);
+      players = response.players;
+      callback(players);
+    });
+  }
+
+  void onUnsubscribePlayerRemoved() {
+    _socketIO.off('on_player_removed');
+  }
+
   void removeGame() {
     var payload = {'roomId': roomId};
     _emit('remove_game', jsonEncode(payload));
+  }
+
+  void onSubscribeGameRemoved(Function callback) {
+    _socketIO.on('on_game_removed', (_) {
+      callback();
+    });
+  }
+
+  void onUnsubscribeGameRemoved() {
+    _socketIO.off('on_game_removed');
   }
 
   void _offSocketEventListeners() async {

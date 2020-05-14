@@ -20,7 +20,6 @@ class MultiPlayerOnlineJoinGameScreen extends StatefulWidget {
 
 class _MultiPlayerOnlineJoinGameState
     extends State<MultiPlayerOnlineJoinGameScreen> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = new GlobalKey<FormState>();
 
   CRGameServer _gameServer;
@@ -83,8 +82,7 @@ class _MultiPlayerOnlineJoinGameState
         form.validate();
       }
     } else {
-      var message = response.message;
-      _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+      _gameServer.showToast(response.message, Duration(milliseconds: 2000));
     }
   }
 
@@ -109,7 +107,6 @@ class _MultiPlayerOnlineJoinGameState
   Widget build(BuildContext context) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Scaffold(
-      key: _scaffoldKey,
       body: Background(
         child: Stack(
           children: <Widget>[

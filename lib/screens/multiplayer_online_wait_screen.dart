@@ -1,3 +1,4 @@
+import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
@@ -38,6 +39,15 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
           _gameServer.startGame(context);
         });
       }
+    });
+
+    _gameServer.onSubscribePlayerRemoved(() {
+      setState(() {});
+    });
+
+    _gameServer.onSubscribeGameRemoved(() {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.multi_player_online);
+      _gameServer.showToast('Game room removed.', Duration(milliseconds: 3000));
     });
   }
 
@@ -103,7 +113,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
               if (_gameServer.isCreatedByMe) {
                 _gameServer.removeGame();
               } else {
-                // Todo: Remove Player from List who join game
+                _gameServer.removePlayerFromGame();
               }
             });
       },
@@ -163,6 +173,8 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
   @override
   void dispose() {
     _gameServer.onUnsubscribeJoined();
+    _gameServer.onUnsubscribePlayerRemoved();
+    _gameServer.onUnsubscribeGameRemoved();
     if (!_gameServer.isGameStarted) {
       _gameServer.disconnect();
     }

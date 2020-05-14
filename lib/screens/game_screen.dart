@@ -14,8 +14,6 @@ import 'package:chain_reaction_game/widgets/volume_button.dart';
 import 'package:chain_reaction_game/widgets/players_listing.dart';
 
 class GameScreen extends StatelessWidget {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-
   GameScreen({Key key}) : super(key: key);
 
   @override
@@ -28,7 +26,6 @@ class GameScreen extends StatelessWidget {
             message: 'Do you want to leave game?');
       },
       child: Scaffold(
-        key: _scaffoldKey,
         body: BlocBuilder<CRBloc, CRState>(
           condition: (prevState, state) {
             return prevState != state;

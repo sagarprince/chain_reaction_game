@@ -13,6 +13,14 @@ class StartGameEvent extends CREvent {
       : assert(players != null && players.length != 0);
 }
 
+/// Called when set players
+class SetPlayersEvent extends CREvent {
+  List<Player> players;
+
+  SetPlayersEvent({this.players})
+      : assert(players != null && players.length != 0);
+}
+
 /// Set Winner Event
 class SetWinnerEvent extends CREvent {
   Player winner;

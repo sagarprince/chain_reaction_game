@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
+import 'package:chain_reaction_game/models/server_response.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/game/engine/board.dart';
@@ -37,7 +38,7 @@ class CREngine {
 
   Function _onWinner;
 
-  CREngine(CRState state, [Function onWinner]) {
+  CREngine(CRState state, [Function onWinner, Function onGamePlayerRemoved]) {
     this._state = state;
     _gameServer = CRGameServer();
     this.allPlayers = _state.players;
@@ -76,12 +77,14 @@ class CREngine {
 
   void _socketSubscribers() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      _gameServer.onSubscribePlayedMove((data) {
-        print(data);
-        Position pos = Position.fromJson(data['pos']);
-        String player = data['player'];
-        makeMove(pos, player);
+      _gameServer.onSubscribePlayedMove((ServerResponse response) {
+        print('Played Move..');
+        print(response.pos);
+        print(response.player);
+        makeMove(response.pos, response.player);
       });
+
+      _gameServer.onSubscribePlayerRemoved((players) {});
     }
   }
 
@@ -237,6 +240,7 @@ class CREngine {
   void _socketUnSubscribers() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
       _gameServer.onUnsubscribePlayedMove();
+      _gameServer.onUnsubscribePlayerRemoved();
       _gameServer.disconnect();
     }
   }

@@ -1,4 +1,5 @@
 import 'package:chain_reaction_game/models/player.dart';
+import 'package:chain_reaction_game/models/position.dart';
 
 enum GamePlayStatus { INIT, START, WAIT, ERROR, EXCEPTION }
 
@@ -11,6 +12,8 @@ class ServerResponse {
   final int roomId;
   final int playersLimit;
   final List<Player> players;
+  final Position pos;
+  final String player;
 
   /// Convenient constructor.
   ServerResponse(
@@ -20,7 +23,9 @@ class ServerResponse {
       this.message = '',
       this.roomId = -1,
       this.playersLimit = 2,
-      this.players = const []});
+      this.players = const [],
+      this.pos,
+      this.player});
 
   factory ServerResponse.fromJson(dynamic json, [String myColor = '']) {
     List<dynamic> _players = json['players'] ?? [];
@@ -30,12 +35,19 @@ class ServerResponse {
         players.add(Player.fromJson(p, myColor));
       });
     }
+    dynamic _pos = json['pos'] ?? null;
+    Position pos;
+    if (_pos != null) {
+      pos = Position.fromJson(_pos);
+    }
     return ServerResponse(
         status: json['status'],
         code: json['code'] ?? '',
         message: json['message'] ?? '',
         roomId: json['roomId'] ?? -1,
         playersLimit: json['playersLimit'] ?? 2,
-        players: players);
+        players: players,
+        pos: pos,
+        player: json['player'] ?? '');
   }
 }
