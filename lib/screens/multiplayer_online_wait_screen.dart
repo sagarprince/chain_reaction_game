@@ -35,13 +35,14 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
     _gameServer.onSubscribeJoined((status) {
       setState(() {});
       if (status == GamePlayStatus.START) {
+        _gameServer.onUnsubscribePlayerRemoved();
         Future.delayed(Duration(milliseconds: 200), () {
           _gameServer.startGame(context);
         });
       }
     });
 
-    _gameServer.onSubscribePlayerRemoved(() {
+    _gameServer.onSubscribePlayerRemoved((_, __) {
       setState(() {});
     });
 
@@ -113,7 +114,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
               if (_gameServer.isCreatedByMe) {
                 _gameServer.removeGame();
               } else {
-                _gameServer.removePlayerFromGame();
+                _gameServer.removePlayerFromGame(false);
               }
             });
       },
@@ -145,8 +146,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
                                     'Waiting for remaining players to join then you navigated to game board.',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.regularText
-                                        .copyWith(fontFamily: AppFonts.third)
-                                        .copyWith(fontSize: 20.0)),
+                                        .copyWith(fontSize: 22.0)),
                               )
                             : SizedBox(),
                         SizedBox(height: 50.0),
@@ -173,9 +173,9 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
   @override
   void dispose() {
     _gameServer.onUnsubscribeJoined();
-    _gameServer.onUnsubscribePlayerRemoved();
     _gameServer.onUnsubscribeGameRemoved();
     if (!_gameServer.isGameStarted) {
+      _gameServer.onUnsubscribePlayerRemoved();
       _gameServer.disconnect();
     }
     super.dispose();

@@ -21,6 +21,18 @@ class SetPlayersEvent extends CREvent {
       : assert(players != null && players.length != 0);
 }
 
+/// Set My Turn Event
+class SetMyTurnEvent extends CREvent {
+  bool isMyTurn;
+  SetMyTurnEvent(this.isMyTurn);
+}
+
+/// Set Chain Reaction Event
+class SetChainReactionEvent extends CREvent {
+  bool isChainReaction;
+  SetChainReactionEvent(this.isChainReaction);
+}
+
 /// Set Winner Event
 class SetWinnerEvent extends CREvent {
   Player winner;

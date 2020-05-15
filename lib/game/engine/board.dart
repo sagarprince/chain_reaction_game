@@ -168,6 +168,22 @@ class Board {
   }
 
   /// Reset Board Matrix
+  List<List<dynamic>> resetRemovedPlayerOrbs(String player) {
+    List<List<dynamic>> _matrix = _copy(matrix);
+    int total = rows * cols;
+    for (int k = 0; k < total; k++) {
+      int i = k ~/ cols;
+      int j = k % cols;
+      CellInfo cellInfo = _matrix[i][j][1];
+      if (cellInfo.player == player) {
+        _matrix[i][j][0] = 0;
+        _matrix[i][j][1] = CellInfo();
+      }
+    }
+    return _matrix;
+  }
+
+  /// Reset Board Matrix
   List<List<dynamic>> reset() {
     List<List<dynamic>> _matrix = _copy(matrix);
     int total = rows * cols;

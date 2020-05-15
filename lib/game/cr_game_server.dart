@@ -224,8 +224,12 @@ class CRGameServer {
     _socketIO.off('on_played_move');
   }
 
-  void removePlayerFromGame() {
-    var payload = {'roomId': roomId, 'player': myColor};
+  void removePlayerFromGame(bool isGameStarted) {
+    var payload = {
+      'roomId': roomId,
+      'player': myColor,
+      'isGameStarted': isGameStarted
+    };
     _emit('remove_player_from_game', jsonEncode(payload));
   }
 
@@ -233,7 +237,7 @@ class CRGameServer {
     _socketIO.on('on_player_removed', (data) {
       ServerResponse response = ServerResponse.fromJson(data);
       players = response.players;
-      callback(players);
+      callback(players, response.removedPlayer);
     });
   }
 
@@ -257,7 +261,6 @@ class CRGameServer {
   }
 
   void _offSocketEventListeners() async {
-    print('OFF LISTENERS');
     await _socketIO.off(SocketIO.CONNECT);
     await _socketIO.off(SocketIO.RECONNECT);
     await _socketIO.off(SocketIO.RECONNECTING);

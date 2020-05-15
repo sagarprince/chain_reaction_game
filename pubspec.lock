@@ -6,7 +6,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a6d720c1ef01a1b517feabb547118d37586753a2
+      resolved-ref: "248a32c994c2e1ec360ffc3da550230f795fe2a9"
       url: "https://github.com/sagarprince/flutter_socket_client.git"
     source: git
     version: "0.4.1"

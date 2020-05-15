@@ -84,7 +84,7 @@ class CustomDialog extends StatelessWidget {
         context: context,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 280.0),
+            constraints: const BoxConstraints(minWidth: 300.0),
             child: Material(
               color: backgroundColor ??
                   dialogTheme.backgroundColor ??

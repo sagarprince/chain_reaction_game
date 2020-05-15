@@ -18,103 +18,113 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        return UiUtils.confirmDialog(
-            context: context,
-            title: 'Leave Game',
-            message: 'Do you want to leave game?');
-      },
-      child: Scaffold(
-        body: BlocBuilder<CRBloc, CRState>(
-          condition: (prevState, state) {
-            return prevState != state;
-          },
-          builder: (context, state) {
-            return Background(
-              child: Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  Positioned.fill(
-                    child: SafeArea(
-                      child: Container(
-                        padding: EdgeInsets.only(
-                            left: 10, right: 10, top: 50, bottom: 10),
-                        child: GameView(
-                            bloc: BlocProvider.of<CRBloc>(context),
-                            state: state),
-                      ),
+    return Scaffold(
+      body: BlocBuilder<CRBloc, CRState>(
+        condition: (prevState, state) {
+          return prevState != state;
+        },
+        builder: (context, state) {
+          return Background(
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                Positioned.fill(
+                  child: SafeArea(
+                    child: Container(
+                      padding: EdgeInsets.only(
+                          left: 10, right: 10, top: 50, bottom: 10),
+                      child: GameView(
+                          bloc: BlocProvider.of<CRBloc>(context), state: state),
                     ),
                   ),
-                  Positioned.fill(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[],
-                  )),
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top,
-                    left: 0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              IconButton(
-                                icon: Image.asset(
-                                  'assets/images/close.png',
-                                ),
-                                iconSize: 32.0,
-                                onPressed: () {
-                                  if (Navigator.canPop(context)) {
-                                    Navigator.maybePop(context);
-                                  }
-                                },
+                ),
+                Positioned.fill(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[],
+                )),
+                Positioned(
+                  top: MediaQuery.of(context).padding.top,
+                  left: 0,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            IconButton(
+                              icon: Image.asset(
+                                'assets/images/close.png',
                               ),
-                              state.gameMode != GameMode.PlayVersusBot
-                                  ? IconButton(
-                                      icon: Icon(Icons.group,
-                                          color: AppColors.white),
-                                      iconSize: 34.0,
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                            context: context,
-                                            backgroundColor: Colors.transparent,
-                                            builder: (BuildContext context) {
-                                              return PlayersListing(
-                                                  players: state.players);
-                                            });
-                                      },
-                                    )
-                                  : SizedBox(),
-                            ],
+                              iconSize: 32.0,
+                              onPressed: () {
+                                if (Navigator.canPop(context) &&
+                                    !state.isChainReaction) {
+                                  Navigator.maybePop(context);
+                                }
+                              },
+                            ),
+                            state.gameMode != GameMode.PlayVersusBot
+                                ? IconButton(
+                                    icon: Icon(Icons.group,
+                                        color: AppColors.white),
+                                    iconSize: 34.0,
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (BuildContext context) {
+                                            return PlayersListing(
+                                                players: state.players);
+                                          });
+                                    },
+                                  )
+                                : SizedBox(),
+                          ],
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                return state.isMyTurn
+                                    ? Text('-- Your Turn --',
+                                        style: AppTextStyles.regularText
+                                            .copyWith(
+                                                fontSize:
+                                                    constraints.maxWidth > 180
+                                                        ? 18.0
+                                                        : 16.0))
+                                    : SizedBox();
+                              },
+                            ),
                           ),
-                          Row(
-                            children: <Widget>[
-                              VolumeButton(),
-                              IconButton(
-                                icon: Image.asset(
-                                  'assets/images/rules.png',
-                                ),
-                                iconSize: 34.0,
-                                onPressed: () {
-                                  UiUtils.showGameRulesDialog(context);
-                                },
-                              )
-                            ],
-                          )
-                        ],
-                      ),
+                        ),
+                        Row(
+                          children: <Widget>[
+                            VolumeButton(),
+                            IconButton(
+                              icon: Image.asset(
+                                'assets/images/rules.png',
+                              ),
+                              iconSize: 34.0,
+                              onPressed: () {
+                                UiUtils.showGameRulesDialog(context);
+                              },
+                            )
+                          ],
+                        )
+                      ],
                     ),
-                  )
-                ],
-              ),
-            );
-          },
-        ),
+                  ),
+                )
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -139,8 +149,31 @@ class _GameViewState extends State<GameView> {
   @override
   void initState() {
     _engine = CREngine(widget.state, (winner) {
+      // On Winner
       widget.bloc.add(SetWinnerEvent(winner));
       Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
+    }, (isMyTurn) {
+      // On My Turn
+      widget.bloc.add(SetMyTurnEvent(isMyTurn));
+    }, (isChainReaction) {
+      // On Chain Reaction
+      widget.bloc.add(SetChainReactionEvent(isChainReaction));
+    }, (players, pColors) {
+      // On Online Player Removed
+      if (pColors.length > 1) {
+        widget.bloc.add(SetPlayersEvent(players: players));
+      } else {
+        Keys.navigatorKey.currentState
+            .pushReplacementNamed(AppRoutes.multi_player_online);
+        _engine.server.showToast(
+            'Sorry no one is available to play game, so that game is closed.',
+            Duration(milliseconds: 4000));
+      }
+    }, () {
+      // On Player Eliminated
+      UiUtils.showEliminatedDialog(context, () {
+        Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.base);
+      });
     });
     _game = CRGame(_engine);
     super.initState();
@@ -148,7 +181,20 @@ class _GameViewState extends State<GameView> {
 
   @override
   Widget build(BuildContext context) {
-    return _game.widget;
+    return WillPopScope(
+        onWillPop: () {
+          return UiUtils.confirmDialog(
+              context: context,
+              title: 'Leave Game',
+              message: 'Do you want to leave game?',
+              callback: () {
+                if (widget.state.gameMode == GameMode.MultiPlayerOnline) {
+                  widget.bloc.add(SetMyTurnEvent(false));
+                  _engine.server.removePlayerFromGame(true);
+                }
+              });
+        },
+        child: _game.widget);
   }
 
   @override

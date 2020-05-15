@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/widgets/custom_dialog.dart';
-import 'package:chain_reaction_game/widgets/game_rules_modal.dart';
+import 'package:chain_reaction_game/widgets/game_rules_dialog.dart';
+import 'package:chain_reaction_game/widgets/eliminated_dialog.dart';
 
 class UiUtils {
   static Future<bool> confirmDialog(
@@ -82,5 +83,17 @@ class UiUtils {
       return MediaQuery.of(context).viewInsets.bottom > 0 ? true : false;
     }
     return false;
+  }
+
+  static void showEliminatedDialog(
+      BuildContext context, VoidCallback callback) {
+    var _dialog = CustomDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: EliminatedDialog(callback: callback),
+    );
+
+    showDialog(context: context, builder: (BuildContext context) => _dialog);
   }
 }
