@@ -85,7 +85,7 @@ class GameScreen extends StatelessWidget {
                               builder: (BuildContext context,
                                   BoxConstraints constraints) {
                                 return state.isMyTurn
-                                    ? Text('-- Your Turn --',
+                                    ? Text('Your Turn',
                                         style: AppTextStyles.regularText
                                             .copyWith(
                                                 fontSize:
