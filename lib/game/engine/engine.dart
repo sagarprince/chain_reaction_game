@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:chain_reaction_game/utils/strings_utils.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/server_response.dart';
 import 'package:chain_reaction_game/models/player.dart';
@@ -293,7 +294,7 @@ class CREngine {
         }
 
         _board.resetRemovedPlayerOrbs(removed.color);
-        _gameServer.showToast('${removed.name.toUpperCase()} leave game.',
+        _gameServer.showToast('${camelize(removed.name)} leave game.',
             Duration(milliseconds: 2200));
       }
 

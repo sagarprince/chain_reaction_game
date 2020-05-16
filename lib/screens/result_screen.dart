@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
+import 'package:chain_reaction_game/utils/strings_utils.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:chain_reaction_game/widgets/background.dart';
@@ -91,7 +92,7 @@ class _ResultScreenState extends State<ResultScreen> {
         message = 'You Lost !!!';
       }
     } else {
-      message = '${winner.name} Won !!!';
+      message = '${camelize(winner.name)} Won !!!';
     }
 
     return Container(
@@ -123,6 +124,7 @@ class _ResultScreenState extends State<ResultScreen> {
           SizedBox(height: 10.0),
           Text(
             message,
+            textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 26.0,
                 fontFamily: AppFonts.secondary,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:chain_reaction_game/utils/strings_utils.dart';
 import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -232,7 +233,7 @@ class CRGameServer {
   void onSubscribeEliminatedPlayer() {
     _socketIO.on('on_eliminated_player', (data) {
       ServerResponse response = ServerResponse.fromJson(data);
-      showToast('${response.eliminatedPlayer.name} is eliminated.',
+      showToast('${camelize(response.eliminatedPlayer.name)} is eliminated.',
           Duration(milliseconds: 2400));
     });
   }

@@ -1,5 +1,6 @@
-import 'package:chain_reaction_game/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:chain_reaction_game/utils/constants.dart';
+import 'package:chain_reaction_game/utils/strings_utils.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:chain_reaction_game/utils/ui_utils.dart';
 import 'package:chain_reaction_game/models/server_response.dart';
@@ -68,7 +69,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
         children: <Widget>[
           Icon(!isWait ? LineAwesomeIcons.user : LineAwesomeIcons.user_plus,
               color: AppColors.white, size: 40.0),
-          Text(name,
+          Text(camelize(name),
               textAlign: TextAlign.center,
               style: AppTextStyles.regularText,
               overflow: TextOverflow.ellipsis)

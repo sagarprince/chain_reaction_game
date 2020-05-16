@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
+import 'package:chain_reaction_game/utils/strings_utils.dart';
 import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/widgets/orb.dart';
 
@@ -42,7 +43,8 @@ class PlayersListing extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.only(left: 10.0),
                           height: 25.0,
-                          child: Text(player.isYou ? 'You' : player.name,
+                          child: Text(
+                              player.isYou ? 'You' : camelize(player.name),
                               style: AppTextStyles.regularText
                                   .copyWith(fontSize: 16.0)),
                         )
