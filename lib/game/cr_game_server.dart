@@ -224,25 +224,25 @@ class CRGameServer {
     _socketIO.off('on_played_move');
   }
 
-  void removePlayerFromGame(bool isGameStarted) {
+  void leaveGame(bool isGameStarted) {
     var payload = {
       'roomId': roomId,
       'player': myColor,
       'isGameStarted': isGameStarted
     };
-    _emit('remove_player_from_game', jsonEncode(payload));
+    _emit('leave_game', jsonEncode(payload));
   }
 
-  void onSubscribePlayerRemoved(Function callback) {
-    _socketIO.on('on_player_removed', (data) {
+  void onSubscribePlayerLeaveGame(Function callback) {
+    _socketIO.on('on_player_leave_game', (data) {
       ServerResponse response = ServerResponse.fromJson(data);
       players = response.players;
       callback(players, response.removedPlayer);
     });
   }
 
-  void onUnsubscribePlayerRemoved() {
-    _socketIO.off('on_player_removed');
+  void onUnsubscribePlayerLeaveGame() {
+    _socketIO.off('on_player_leave_game');
   }
 
   void removeGame() {

@@ -38,12 +38,6 @@ class GameScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned.fill(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[],
-                )),
                 Positioned(
                   top: MediaQuery.of(context).padding.top,
                   left: 0,
@@ -148,33 +142,35 @@ class _GameViewState extends State<GameView> {
 
   @override
   void initState() {
-    _engine = CREngine(widget.state, (winner) {
-      // On Winner
-      widget.bloc.add(SetWinnerEvent(winner));
-      Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
-    }, (isMyTurn) {
-      // On My Turn
-      widget.bloc.add(SetMyTurnEvent(isMyTurn));
-    }, (isChainReaction) {
-      // On Chain Reaction
-      widget.bloc.add(SetChainReactionEvent(isChainReaction));
-    }, (players, pColors) {
-      // On Online Player Removed
-      if (pColors.length > 1) {
-        widget.bloc.add(SetPlayersEvent(players: players));
-      } else {
-        Keys.navigatorKey.currentState
-            .pushReplacementNamed(AppRoutes.multi_player_online);
-        _engine.server.showToast(
-            'Sorry no one is available to play game, so that game is closed.',
-            Duration(milliseconds: 4000));
-      }
-    }, () {
-      // On Player Eliminated
-      UiUtils.showEliminatedDialog(context, () {
-        Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.base);
-      });
-    });
+    _engine = CREngine(
+        state: widget.state,
+        onMyTurn: (bool isMyTurn) {
+          widget.bloc.add(SetMyTurnEvent(isMyTurn));
+        },
+        onChainReaction: (bool isChainReaction) {
+          widget.bloc.add(SetChainReactionEvent(isChainReaction));
+        },
+        onPlayerLeaveOnlineGame: (players, playersColors) {
+          if (playersColors.length > 1) {
+            widget.bloc.add(SetPlayersEvent(players: players));
+          } else {
+            Keys.navigatorKey.currentState
+                .popUntil(ModalRoute.withName(AppRoutes.multi_player_online));
+            _engine.server.showToast(
+                'Sorry no one is available to play game, so that game is closed.',
+                Duration(milliseconds: 4000));
+          }
+        },
+        onPlayerEliminated: () {
+          UiUtils.showEliminatedDialog(context, () {
+            _onLeaveOnlineGame();
+            Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.base);
+          });
+        },
+        onWinner: (winner) {
+          widget.bloc.add(SetWinnerEvent(winner));
+          Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
+        });
     _game = CRGame(_engine);
     super.initState();
   }
@@ -188,13 +184,17 @@ class _GameViewState extends State<GameView> {
               title: 'Leave Game',
               message: 'Do you want to leave game?',
               callback: () {
-                if (widget.state.gameMode == GameMode.MultiPlayerOnline) {
-                  widget.bloc.add(SetMyTurnEvent(false));
-                  _engine.server.removePlayerFromGame(true);
-                }
+                _onLeaveOnlineGame();
               });
         },
         child: _game.widget);
+  }
+
+  void _onLeaveOnlineGame() {
+    if (widget.state.gameMode == GameMode.MultiPlayerOnline) {
+      widget.bloc.add(SetMyTurnEvent(false));
+      _engine.server.leaveGame(true);
+    }
   }
 
   @override

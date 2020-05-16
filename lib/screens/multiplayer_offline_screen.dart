@@ -153,7 +153,7 @@ class _MultiPlayerOfflineScreenState extends State<MultiPlayerOfflineScreen> {
                       Expanded(
                         child: TextField(
                           controller: _controller,
-                          maxLength: 24,
+                          maxLength: 18,
                           decoration: InputDecoration(
                             enabledBorder: UnderlineInputBorder(
                               borderSide: BorderSide(

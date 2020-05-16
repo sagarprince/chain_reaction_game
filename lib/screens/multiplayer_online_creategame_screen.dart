@@ -162,7 +162,7 @@ class _MultiPlayerOnlineCreateGameState
                             Container(
                               padding: EdgeInsets.only(left: 30.0, right: 30.0),
                               child: TextFormField(
-                                maxLength: 24,
+                                maxLength: 18,
                                 decoration: InputDecoration(
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(

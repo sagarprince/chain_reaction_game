@@ -35,14 +35,14 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
     _gameServer.onSubscribeJoined((status) {
       setState(() {});
       if (status == GamePlayStatus.START) {
-        _gameServer.onUnsubscribePlayerRemoved();
+        _gameServer.onUnsubscribePlayerLeaveGame();
         Future.delayed(Duration(milliseconds: 200), () {
           _gameServer.startGame(context);
         });
       }
     });
 
-    _gameServer.onSubscribePlayerRemoved((_, __) {
+    _gameServer.onSubscribePlayerLeaveGame((_, __) {
       setState(() {});
     });
 
@@ -114,7 +114,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
               if (_gameServer.isCreatedByMe) {
                 _gameServer.removeGame();
               } else {
-                _gameServer.removePlayerFromGame(false);
+                _gameServer.leaveGame(false);
               }
             });
       },
@@ -175,7 +175,7 @@ class _MultiPlayerOnlineWaitState extends State<MultiPlayerOnlineWaitScreen> {
     _gameServer.onUnsubscribeJoined();
     _gameServer.onUnsubscribeGameRemoved();
     if (!_gameServer.isGameStarted) {
-      _gameServer.onUnsubscribePlayerRemoved();
+      _gameServer.onUnsubscribePlayerLeaveGame();
       _gameServer.disconnect();
     }
     super.dispose();

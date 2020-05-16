@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chain_reaction_game/utils/styles.dart';
 
 class EliminatedDialog extends StatelessWidget {
-  VoidCallback callback;
+  final VoidCallback callback;
 
   EliminatedDialog({Key key, this.callback}) : super(key: key);
 

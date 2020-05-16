@@ -176,7 +176,7 @@ class _MultiPlayerOnlineJoinGameState
                               padding: EdgeInsets.only(left: 30.0, right: 30.0),
                               child: TextFormField(
                                 focusNode: _nameFocusNode,
-                                maxLength: 24,
+                                maxLength: 18,
                                 decoration: InputDecoration(
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(

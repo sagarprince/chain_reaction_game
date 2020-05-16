@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/models/server_response.dart';
@@ -6,6 +7,8 @@ import 'package:chain_reaction_game/models/player.dart';
 import 'package:chain_reaction_game/models/position.dart';
 import 'package:chain_reaction_game/game/engine/board.dart';
 import 'package:chain_reaction_game/game/cr_game_server.dart';
+
+typedef LeaveGameVoidFunc = void Function(List<Player>, List<dynamic>);
 
 class CREngine {
   CRState _state;
@@ -20,7 +23,7 @@ class CREngine {
 
   List<Player> _allPlayers = [];
 
-  List<String> _players = [];
+  List<String> _playersColors = [];
 
   int _pTurnIndex = 0;
 
@@ -39,35 +42,44 @@ class CREngine {
 
   bool _isYouEliminated = false;
 
-  Function _onWinner;
-  Function _onMyTurn;
-  Function _onChainReaction;
-  Function _onOnlinePlayerRemoved;
-  Function _onPlayerEliminated;
+  ValueChanged<bool> _onMyTurn;
+  ValueChanged<bool> _onChainReaction;
+  LeaveGameVoidFunc _onPlayerLeaveOnlineGame;
+  VoidCallback _onPlayerEliminated;
+  ValueChanged<Player> _onWinner;
 
-  CREngine(CRState state,
-      [Function onWinner,
-      Function onMyTurn,
-      Function onChainReaction,
-      Function onOnlinePlayerRemoved,
-      Function onPlayerEliminated]) {
-    this._state = state;
+  CREngine({
+    CRState state,
+    ValueChanged<bool> onMyTurn,
+    ValueChanged<bool> onChainReaction,
+    LeaveGameVoidFunc onPlayerLeaveOnlineGame,
+    VoidCallback onPlayerEliminated,
+    ValueChanged onWinner,
+  }) {
+    _state = state;
     _gameServer = CRGameServer();
+
     this._allPlayers = _state.players;
     _playerTurn = _allPlayers[0].color;
+
     _isBotEnabled = _state.gameMode == GameMode.PlayVersusBot ? true : false;
-    this._board = Board(rows, cols, _isBotEnabled);
-    this._players = _buildPlayers();
-    this._onWinner = onWinner;
-    this._onMyTurn = onMyTurn;
-    this._onChainReaction = onChainReaction;
-    this._onOnlinePlayerRemoved = onOnlinePlayerRemoved;
-    this._onPlayerEliminated = onPlayerEliminated;
+
+    _board = Board(rows, cols, _isBotEnabled);
+
+    _playersColors = _buildPlayersColors();
+
+    _onMyTurn = onMyTurn;
+    _onChainReaction = onChainReaction;
+    _onPlayerLeaveOnlineGame = onPlayerLeaveOnlineGame;
+    _onPlayerEliminated = onPlayerEliminated;
+    _onWinner = onWinner;
+
     _onMyTurn(_playerTurn == _gameServer.myColor ? true : false);
+
     _socketSubscribers();
   }
 
-  List<String> _buildPlayers() {
+  List<String> _buildPlayersColors() {
     List<String> players = [];
     _state.players.forEach((p) {
       players.add(p.color);
@@ -76,12 +88,12 @@ class CREngine {
   }
 
   void _setNextPlayer() {
-    if (_pTurnIndex < _players.length - 1) {
+    if (_pTurnIndex < _playersColors.length - 1) {
       _pTurnIndex++;
     } else {
       _pTurnIndex = 0;
     }
-    _playerTurn = _players[_pTurnIndex];
+    _playerTurn = _playersColors[_pTurnIndex];
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
       _onMyTurn(_playerTurn == _gameServer.myColor ? true : false);
     }
@@ -100,8 +112,8 @@ class CREngine {
       _gameServer.onSubscribePlayedMove((ServerResponse response) {
         makeMove(response.pos, response.player);
       });
-      _gameServer.onSubscribePlayerRemoved((players, removed) {
-        onOnlinePlayerLeaveGame(players, removed);
+      _gameServer.onSubscribePlayerLeaveGame((players, removed) {
+        _onPlayerLeaveGame(players, removed);
       });
     }
   }
@@ -187,38 +199,40 @@ class CREngine {
 
   String _evaluateWinner() {
     String winner = '';
-    if (_totalMoves >= _players.length) {
-      List<int> playersScores = _board.getScores(_players);
+    if (_totalMoves >= _playersColors.length) {
+      List<int> playersScores = _board.getScores(_playersColors);
       int k = 0;
       dynamic player;
       List<dynamic> removedList = [];
 
       playersScores.forEach((sc) {
         if (sc == 0) {
-          removedList.add(_players[k]);
+          removedList.add(_playersColors[k]);
         }
         k++;
       });
 
       if (removedList.length > 0) {
-        player =
-            _pTurnIndex <= (_players.length - 1) ? _players[_pTurnIndex] : null;
+        player = _pTurnIndex <= (_playersColors.length - 1)
+            ? _playersColors[_pTurnIndex]
+            : null;
         removedList.forEach((v) {
-          _players.remove(v);
+          _playersColors.remove(v);
         });
       }
 
       if (player != null) {
-        _pTurnIndex =
-            _players.indexOf(player) > -1 ? _players.indexOf(player) : 0;
+        _pTurnIndex = _playersColors.indexOf(player) > -1
+            ? _playersColors.indexOf(player)
+            : 0;
       }
 
-      if (_players.length == 1) {
-        winner = _players[0];
+      if (_playersColors.length == 1) {
+        winner = _playersColors[0];
       } else {
-        //// Show dialog to player when eliminated in online mode
+        /// Show dialog to player when eliminated in online mode
         if (_state.gameMode == GameMode.MultiPlayerOnline &&
-            _players.indexOf(_gameServer.myColor) == -1 &&
+            _playersColors.indexOf(_gameServer.myColor) == -1 &&
             !_isYouEliminated) {
           _isYouEliminated = true;
           _onPlayerEliminated();
@@ -260,49 +274,49 @@ class CREngine {
     return index > -1 ? _allPlayers[index] : null;
   }
 
-  void onOnlinePlayerLeaveGame(List<Player> players, Player removed) {
+  void _onPlayerLeaveGame(List<Player> players, Player removed) {
     if (removed != null && _winner == '') {
-      int removedPlayerIndex = _players.indexOf(removed.color);
-      _players.remove(removed.color);
+      int removedIndex = _playersColors.indexOf(removed.color);
+      _playersColors.remove(removed.color);
 
-      if (_players.length > 1) {
-        if (removedPlayerIndex == _pTurnIndex) {
-          print(removedPlayerIndex > (_players.length - 1));
-          if (removedPlayerIndex > (_players.length - 1)) {
+      if (_playersColors.length > 1) {
+        if (removedIndex == _pTurnIndex) {
+          if (removedIndex > (_playersColors.length - 1)) {
             _pTurnIndex = 0;
           }
         }
 
-        _playerTurn = _players[_pTurnIndex];
+        _playerTurn = _playersColors[_pTurnIndex];
         if (_state.gameMode == GameMode.MultiPlayerOnline) {
           _onMyTurn(_playerTurn == _gameServer.myColor ? true : false);
         }
 
         _board.resetRemovedPlayerOrbs(removed.color);
-        _gameServer.showToast(
-            '${removed.name} leave game.', Duration(milliseconds: 2200));
+        _gameServer.showToast('${removed.name.toUpperCase()} leave game.',
+            Duration(milliseconds: 2200));
       }
 
-      _onOnlinePlayerRemoved(players, _players);
+      _onPlayerLeaveOnlineGame(players, _playersColors);
     }
   }
 
   void reset() {
     _board.reset();
-    _players = _buildPlayers();
+    _playersColors = _buildPlayersColors();
     _pTurnIndex = 0;
-    _playerTurn = _players[_pTurnIndex];
+    _playerTurn = _playersColors[_pTurnIndex];
     _totalMoves = 0;
+    _isYouEliminated = false;
     _winner = '';
   }
 
   void _disconnectFromServer() {
     if (_state.gameMode == GameMode.MultiPlayerOnline) {
-      if (_players.length == 1) {
+      if (_playersColors.length == 1) {
         _gameServer.removeGame();
       }
       _gameServer.onUnsubscribePlayedMove();
-      _gameServer.onUnsubscribePlayerRemoved();
+      _gameServer.onUnsubscribePlayerLeaveGame();
       _gameServer.disconnect();
     }
   }
