@@ -15,6 +15,7 @@ class ServerResponse {
   final Position pos;
   final String player;
   final Player removedPlayer;
+  final Player eliminatedPlayer;
 
   /// Convenient constructor.
   ServerResponse(
@@ -27,7 +28,8 @@ class ServerResponse {
       this.players = const [],
       this.pos,
       this.player,
-      this.removedPlayer});
+      this.removedPlayer,
+      this.eliminatedPlayer});
 
   factory ServerResponse.fromJson(dynamic json, [String myColor = '']) {
     List<dynamic> _players = json['players'] ?? [];
@@ -50,6 +52,12 @@ class ServerResponse {
       removedPlayer = Player.fromJson(_removePlayer);
     }
 
+    dynamic _eliminatedPlayer = json['eliminatedPlayer'] ?? null;
+    Player eliminatedPlayer;
+    if (_eliminatedPlayer != null) {
+      eliminatedPlayer = Player.fromJson(_eliminatedPlayer);
+    }
+
     return ServerResponse(
         status: json['status'],
         code: json['code'] ?? '',
@@ -59,6 +67,7 @@ class ServerResponse {
         players: players,
         pos: pos,
         player: json['player'] ?? '',
-        removedPlayer: removedPlayer);
+        removedPlayer: removedPlayer,
+        eliminatedPlayer: eliminatedPlayer);
   }
 }

@@ -13,8 +13,8 @@ import 'package:chain_reaction_game/blocs/events.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
 import 'package:chain_reaction_game/blocs/bloc.dart';
 
-//const String URI = 'http://192.168.0.104:4545';
-const String URI = 'https://chain-reaction-server.herokuapp.com';
+const String URI = 'http://192.168.0.104:4545';
+//const String URI = 'https://chain-reaction-server.herokuapp.com';
 
 class CRGameServer {
   SocketIOManager _manager;
@@ -222,6 +222,23 @@ class CRGameServer {
 
   void onUnsubscribePlayedMove() {
     _socketIO.off('on_played_move');
+  }
+
+  void eliminatedPlayer() {
+    var payload = {'roomId': roomId, 'player': myColor};
+    _emit('eliminated_player', jsonEncode(payload));
+  }
+
+  void onSubscribeEliminatedPlayer() {
+    _socketIO.on('on_eliminated_player', (data) {
+      ServerResponse response = ServerResponse.fromJson(data);
+      showToast('${response.eliminatedPlayer.name} is eliminated.',
+          Duration(milliseconds: 2400));
+    });
+  }
+
+  void onUnsubscribeEliminatedPlayer() {
+    _socketIO.off('on_player_eliminated');
   }
 
   void leaveGame(bool isGameStarted) {

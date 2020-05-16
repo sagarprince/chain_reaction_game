@@ -112,6 +112,7 @@ class CREngine {
       _gameServer.onSubscribePlayedMove((ServerResponse response) {
         makeMove(response.pos, response.player);
       });
+      _gameServer.onSubscribeEliminatedPlayer();
       _gameServer.onSubscribePlayerLeaveGame((players, removed) {
         _onPlayerLeaveGame(players, removed);
       });
@@ -316,6 +317,7 @@ class CREngine {
         _gameServer.removeGame();
       }
       _gameServer.onUnsubscribePlayedMove();
+      _gameServer.onUnsubscribeEliminatedPlayer();
       _gameServer.onUnsubscribePlayerLeaveGame();
       _gameServer.disconnect();
     }

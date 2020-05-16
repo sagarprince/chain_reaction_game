@@ -162,6 +162,7 @@ class _GameViewState extends State<GameView> {
           }
         },
         onPlayerEliminated: () {
+          _engine.server.eliminatedPlayer();
           UiUtils.showEliminatedDialog(context, () {
             _onLeaveOnlineGame();
             Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.base);
