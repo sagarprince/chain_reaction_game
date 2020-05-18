@@ -43,7 +43,6 @@ class Bot {
   Future<Position> play(List<List<dynamic>> matrix, dynamic player) async {
     await Future.delayed(Duration(milliseconds: 600));
     dynamic result = await _communicateWithIsolate(_sendPort, matrix, player);
-    print('Return MiniMax $result');
     return result[0];
   }
 
@@ -63,9 +62,6 @@ class Bot {
     int bestMoveScore = bestMoves[1][0];
     depth = bestMoveScore == 10000 ? 1 : depth;
     if (depth == 1) {
-      if (bestMoveScore == 10000) {
-        print('Exit Here $bestMovePos');
-      }
       return [bestMovePos, bestMoveScore];
     }
     List<dynamic> _bestMoves = _bestN(matrix, player, breadth);

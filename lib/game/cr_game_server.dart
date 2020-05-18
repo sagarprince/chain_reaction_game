@@ -66,7 +66,6 @@ class CRGameServer {
 
   void _onSocketEventListeners() {
     _socketIO.onConnect((data) async {
-      print('Connected.');
       isInitializeConnection = false;
       reJoinGame();
       if (_isReconnecting) {
@@ -77,7 +76,6 @@ class CRGameServer {
     });
     // Reconnecting Works for Android not on IOS.
     _socketIO.onReconnecting((_) async {
-      print('Reconnecting...');
       if (!_isReconnecting) {
         _showReconnecting();
       }
@@ -141,9 +139,7 @@ class CRGameServer {
       } else if (response.status == 'exception') {
         response.gamePlayStatus = GamePlayStatus.EXCEPTION;
       }
-    } catch (e) {
-      print('Error $e');
-    }
+    } catch (e) {}
     return response;
   }
 
@@ -181,7 +177,6 @@ class CRGameServer {
   }
 
   void startGame(BuildContext context) {
-    print('START GAME');
     BlocProvider.of<CRBloc>(context).add(
         StartGameEvent(gameMode: GameMode.MultiPlayerOnline, players: players));
     Navigator.of(context).pushReplacementNamed(AppRoutes.play_game);
@@ -313,7 +308,6 @@ class CRGameServer {
       Future.delayed(Duration(milliseconds: 500), () {
         _socketIO = null;
       });
-      print('Disconnected...');
     }
   }
 }
