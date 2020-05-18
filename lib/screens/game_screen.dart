@@ -1,5 +1,6 @@
-import 'package:chain_reaction_game/utils/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:chain_reaction_game/utils/styles.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:chain_reaction_game/blocs/bloc.dart';
 import 'package:chain_reaction_game/blocs/state.dart';
@@ -173,6 +174,7 @@ class _GameViewState extends State<GameView> {
           Keys.navigatorKey.currentState.pushReplacementNamed(AppRoutes.result);
         });
     _game = CRGame(_engine);
+    Wakelock.enable();
     super.initState();
   }
 
@@ -201,6 +203,7 @@ class _GameViewState extends State<GameView> {
   @override
   void dispose() {
     _engine.destroy();
+    Wakelock.disable();
     super.dispose();
   }
 }
